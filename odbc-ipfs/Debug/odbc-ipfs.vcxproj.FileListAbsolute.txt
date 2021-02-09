@@ -1,0 +1,5 @@
+C:\Users\Thomas\Source\Repos\odbc-ipfs\odbc-ipfs\Debug\odbc-ipfs.dll
+C:\Users\Thomas\Source\Repos\odbc-ipfs\odbc-ipfs\Debug\odbc-ipfs.pdb
+C:\Users\Thomas\source\repos\odbc-ipfs-old\Debug\odbc-ipfs.pdb
+C:\Users\Thomas\source\repos\odbc-ipfs-old\odbc-ipfs\Debug\odbc-ipfs.dll
+C:\Users\Thomas\source\repos\odbc-ipfs-old\odbc-ipfs\Debug\odbc-ipfs.pdb

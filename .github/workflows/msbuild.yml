@@ -31,8 +31,11 @@ jobs:
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
     
+    - name: echo build path
+      run: echo "SOLUTION_FILE_PATH:${{env.SOLUTION_FILE_PATH}}"
+          
     - name: 'Upload Artifact'
       uses: actions/upload-artifact@v2
       with:
         name: obdc-ipfs-driver
-        path: odbc-ipfs/x64/Release/odbc-ipfs.dll
+        path: ${{env.SOLUTION_FILE_PATH}}/x64/Release/odbc-ipfs.dll

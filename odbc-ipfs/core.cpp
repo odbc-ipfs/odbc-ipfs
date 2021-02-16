@@ -3,42 +3,108 @@
 #include <limits.h>
 #include "core.h"
 
+/*
+allocates ConnectionHandle and links EnvironmentHandle to it then replaces the input pointer to the allocated pointer*/
 SQLRETURN  SQL_API SQLAllocConnect(SQLHENV EnvironmentHandle,
     _Out_ SQLHDBC* ConnectionHandle) {
+    DBC* dbc;
+    ENV* env;
+
+    if (EnvironmentHandle == NULL) {
+        return SQL_INVALID_HANDLE;
+    }
+    if (ConnectionHandle == NULL) {
+        return SQL_INVALID_HANDLE;
+    }
+
+    env = (ENV*)EnvironmentHandle;
+    dbc = (DBC*)malloc(sizeof(DBC));
+
+    if (dbc == NULL) {
+        *ConnectionHandle = SQL_NULL_HDBC;
+        return SQL_ERROR;
+    }
+
+    dbc->env = env;
+
     return SQL_SUCCESS;
 }
 
+/*
+allocates EnvironmentHandle and replaces input pointer to the allocated pointer*/
 SQLRETURN  SQL_API SQLAllocEnv(_Out_ SQLHENV* EnvironmentHandle) {
+    ENV* e;
+    if (EnvironmentHandle == NULL) {
+        return SQL_INVALID_HANDLE;
+    }
+
+    e = (ENV*) malloc(sizeof(ENV));
+    if (e == NULL) {
+        *EnvironmentHandle = SQL_NULL_HENV;
+        return SQL_ERROR;
+    }
+    
+    *EnvironmentHandle = (SQLHENV)e;
+        
     return SQL_SUCCESS;
 }
 
 
 /*
-SQLAllocHandle replaces SQLAllocConnect, SQLAllocEnv, and SQLAllocStmt*/
+SQLAllocHandle replaces SQLAllocConnect, SQLAllocEnv, and SQLAllocStmt
+
+calls on different allocation depending on the HandleType*/
 #if (ODBCVER >= 0x0300)
 SQLRETURN  SQL_API SQLAllocHandle(SQLSMALLINT HandleType,
     SQLHANDLE InputHandle, _Out_ SQLHANDLE* OutputHandle) {
+    SQLRETURN error = SQL_ERROR;
 
     switch (HandleType) {
         case SQL_HANDLE_ENV:
+            error = SQLAllocEnv(OutputHandle);
             break;
         case SQL_HANDLE_DBC:
+            error = SQLAllocConnect(InputHandle, OutputHandle);
             break;
         case SQL_HANDLE_STMT:
+            error = SQLAllocStmt(InputHandle, OutputHandle);
             break;
+        /*
         case SQL_HANDLE_DESC:
             break;
+        */
         default:
             return SQL_ERROR;
     }
 
 
-    return SQL_SUCCESS;
+    return error;
 }
 #endif
 
 SQLRETURN  SQL_API SQLAllocStmt(SQLHDBC ConnectionHandle,
     _Out_ SQLHSTMT* StatementHandle) {
+    DBC* dbc;
+    STMT* stmt;
+
+    if (ConnectionHandle == NULL) {
+        return SQL_INVALID_HANDLE;
+    }
+    if (StatementHandle == NULL) {
+        return SQL_INVALID_HANDLE;
+    }
+    
+    dbc = (DBC*)ConnectionHandle;
+    
+    stmt = (STMT*)malloc(sizeof(STMT));
+    
+    if (stmt == NULL) {
+        *StatementHandle = SQL_NULL_HSTMT;
+        return SQL_ERROR;
+    }
+
+    stmt->dbc = dbc;
+
     return SQL_SUCCESS;
 }
 

@@ -12,9 +12,27 @@ SQLRETURN  SQL_API SQLAllocEnv(_Out_ SQLHENV* EnvironmentHandle) {
     return SQL_SUCCESS;
 }
 
+
+/*
+SQLAllocHandle replaces SQLAllocConnect, SQLAllocEnv, and SQLAllocStmt*/
 #if (ODBCVER >= 0x0300)
 SQLRETURN  SQL_API SQLAllocHandle(SQLSMALLINT HandleType,
     SQLHANDLE InputHandle, _Out_ SQLHANDLE* OutputHandle) {
+
+    switch (HandleType) {
+        case SQL_HANDLE_ENV:
+            break;
+        case SQL_HANDLE_DBC:
+            break;
+        case SQL_HANDLE_STMT:
+            break;
+        case SQL_HANDLE_DESC:
+            break;
+        default:
+            return SQL_ERROR;
+    }
+
+
     return SQL_SUCCESS;
 }
 #endif

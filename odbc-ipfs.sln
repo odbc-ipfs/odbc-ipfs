@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "odbc-ipfs", "odbc-ipfs\odbc-ipfs.vcxproj", "{DB630E29-F6AC-4227-A5F7-981989E2E92F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "odbc-ipfs-test", "odbc-ipfs-test\odbc-ipfs-test.vcxproj", "{539D3396-AD63-4A33-9DB5-F820C6A6FEEB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{DB630E29-F6AC-4227-A5F7-981989E2E92F}.Release|x64.Build.0 = Release|x64
 		{DB630E29-F6AC-4227-A5F7-981989E2E92F}.Release|x86.ActiveCfg = Release|Win32
 		{DB630E29-F6AC-4227-A5F7-981989E2E92F}.Release|x86.Build.0 = Release|Win32
+		{539D3396-AD63-4A33-9DB5-F820C6A6FEEB}.Debug|x64.ActiveCfg = Debug|x64
+		{539D3396-AD63-4A33-9DB5-F820C6A6FEEB}.Debug|x64.Build.0 = Debug|x64
+		{539D3396-AD63-4A33-9DB5-F820C6A6FEEB}.Debug|x86.ActiveCfg = Debug|Win32
+		{539D3396-AD63-4A33-9DB5-F820C6A6FEEB}.Debug|x86.Build.0 = Debug|Win32
+		{539D3396-AD63-4A33-9DB5-F820C6A6FEEB}.Release|x64.ActiveCfg = Release|x64
+		{539D3396-AD63-4A33-9DB5-F820C6A6FEEB}.Release|x64.Build.0 = Release|x64
+		{539D3396-AD63-4A33-9DB5-F820C6A6FEEB}.Release|x86.ActiveCfg = Release|Win32
+		{539D3396-AD63-4A33-9DB5-F820C6A6FEEB}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

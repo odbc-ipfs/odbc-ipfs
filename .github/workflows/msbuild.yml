@@ -30,3 +30,19 @@ jobs:
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Add VSTest to PATH	   
+      uses: darenm/Setup-VSTest@v1
+      
+    #- name: Run Tests
+    #  run: ${{env.SOLUTION_FILE_PATH}}}/x64/Release/odbc-ipfs-test.exe --gtest_output="xml:report.xml"
+  
+    - name: Run VSTest	   
+      working-directory: ${{env.SOLUTION_FILE_PATH}}
+      run: vstest.console.exe /Platform:x64 /TestAdapterPath:${{env.SOLUTION_FILE_PATH}}/x64/Release /EnableCodeCoverage ${{env.SOLUTION_FILE_PATH}}/x64/Release/odbc-ipfs-test.exe
+  
+    - name: 'Upload Artifact'
+      uses: actions/upload-artifact@v2
+      with:
+        name: obdc-ipfs-driver
+        path: ${{env.SOLUTION_FILE_PATH}}/x64/Release/odbc-ipfs.dll

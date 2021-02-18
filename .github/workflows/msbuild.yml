@@ -39,7 +39,7 @@ jobs:
   
     - name: Run VSTest	   
       working-directory: ${{env.SOLUTION_FILE_PATH}}
-      run: vstest.console.exe /Platform:x64 /TestAdapterPath:${{env.SOLUTION_FILE_PATH}}/x64/Release /EnableCodeCoverage ${{env.SOLUTION_FILE_PATH}}/x64/Release/odbc-ipfs-unit-test.dll
+      run: vstest.console.exe /Platform:x64 /TestAdapterPath:${{env.SOLUTION_FILE_PATH}}/x64/Release /EnableCodeCoverage /logger:trx;LogFileName=testLog.trx ${{env.SOLUTION_FILE_PATH}}/x64/Release/odbc-ipfs-unit-test.dll
   
     - name: 'Upload Artifact'
       uses: actions/upload-artifact@v2

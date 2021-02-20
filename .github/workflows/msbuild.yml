@@ -39,12 +39,12 @@ jobs:
   
     - name: Run VSTest	   
       working-directory: ${{env.SOLUTION_FILE_PATH}}
-      run: vstest.console.exe /Platform:x64 /TestAdapterPath:${{env.SOLUTION_FILE_PATH}}/x64/Release /EnableCodeCoverage /logger:xml ${{env.SOLUTION_FILE_PATH}}/x64/Release/odbc-ipfs-unit-test.dll
+      run: vstest.console.exe /Platform:x64 /TestAdapterPath:${{env.SOLUTION_FILE_PATH}}/x64/Release /EnableCodeCoverage /logger:trx ${{env.SOLUTION_FILE_PATH}}/x64/Release/odbc-ipfs-unit-test.dll
   
     - name: Upload to Codecov
       uses: codecov/codecov-action@v1
       with:
-        files: ${{env.SOLUTION_FILE_PATH}}/TestResults/*.xml
+        files: ${{env.SOLUTION_FILE_PATH}}/TestResults/*.trx
   
     - name: 'Upload DLL Artifact'
       uses: actions/upload-artifact@v2

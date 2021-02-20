@@ -52,8 +52,10 @@ jobs:
         name: obdc-ipfs-driver
         path: ${{env.SOLUTION_FILE_PATH}}/x64/Release/odbc-ipfs.dll
         
-    - name: 'Upload coverage (.trx) Artifact'
+    - name: 'Upload coverage Artifacts'
       uses: actions/upload-artifact@v2
       with:
         name: obdc-ipfs-coverage
-        path: ${{env.SOLUTION_FILE_PATH}}/TestResults/*.xml
+        path: ${{env.SOLUTION_FILE_PATH}}/TestResults/
+          
+

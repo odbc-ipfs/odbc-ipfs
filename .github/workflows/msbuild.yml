@@ -41,6 +41,9 @@ jobs:
       working-directory: ${{env.SOLUTION_FILE_PATH}}
       run: vstest.console.exe /Platform:x64 /TestAdapterPath:${{env.SOLUTION_FILE_PATH}}/x64/Release /EnableCodeCoverage /logger:trx ${{env.SOLUTION_FILE_PATH}}/x64/Release/odbc-ipfs-unit-test.dll
   
+    - name: Geneare XML report from .coverage
+      run: "C:\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\Team Tools\\Dynamic Code Coverage Tools\\CodeCoverage.exe" analyze /output:coverage.xml tst.coverage
+  
     - name: Upload to Codecov
       uses: codecov/codecov-action@v1
       with:

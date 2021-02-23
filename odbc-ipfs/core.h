@@ -6,7 +6,13 @@
 #define CORELIBRARY_API __declsped(dllexport)
 #endif
 
+#include <Odbcinst.h>
 #include <sql.h>
+#include <Sqlext.h>
+#include <Sqltypes.h>
+#include <Sqlucode.h>
+#include <Msdasql.h>
+#include <Msdadc.h>
 
 /*Driver internal structure for environment (HENV).
 
@@ -23,7 +29,7 @@ Things suggested by ms:
 */
 
 typedef struct {
-	int temp;
+	int version;
 } ENV;
 
 /*Driver internal structure for database connection (HDBC).

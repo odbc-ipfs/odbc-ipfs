@@ -26,6 +26,23 @@ typedef struct {
 	int temp;
 } ENV;
 
+/*Driver internal structure for database connection (HDBC).
+
+https://docs.microsoft.com/en-us/sql/odbc/reference/develop-app/connection-handles?view=sql-server-ver15
+Things suggested by ms:
+
+	The state of the connection
+
+	The current connection-level diagnostics
+
+	The handles of statements and descriptors currently allocated on the connection
+
+	The current settings of each connection attribute*/
+typedef struct {
+	ENV* env;
+	int temp;
+} DBC;
+
 /*Driver internal structure representing SQL statement (HSTMT).
 
 https://docs.microsoft.com/en-us/sql/odbc/reference/develop-app/statement-handles?view=sql-server-ver15
@@ -44,19 +61,3 @@ typedef struct {
 	int temp;
 } STMT;
 
-/*Driver internal structure for database connection (HDBC).
-
-https://docs.microsoft.com/en-us/sql/odbc/reference/develop-app/connection-handles?view=sql-server-ver15
-Things suggested by ms:
-
-	The state of the connection
-
-	The current connection-level diagnostics
-
-	The handles of statements and descriptors currently allocated on the connection
-
-	The current settings of each connection attribute*/
-typedef struct {
-	ENV *env;
-	int temp;
-} DBC;

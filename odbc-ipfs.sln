@@ -7,7 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "odbc-ipfs", "odbc-ipfs\odbc
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "odbc-ipfs-unit-test", "odbc-ipfs-unit-test\odbc-ipfs-unit-test.vcxproj", "{31CA39BA-47A2-4834-B70E-E263B936D32B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "odbc-ipfs-example-application", "..\..\SampleODBCApplication\SampleODBCApplication\SampleODBCApplication.vcxproj", "{38131BF2-C9C9-437B-BF0C-476A3B8842F5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "odbc-ipfs-example-application", "odbc-ipfs-example-application\SampleODBCApplication.vcxproj", "{38131BF2-C9C9-437B-BF0C-476A3B8842F5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

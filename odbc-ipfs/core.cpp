@@ -26,7 +26,6 @@ SQLRETURN  SQL_API SQLAllocConnect(SQLHENV EnvironmentHandle,
     }
 
     dbc->env = env;
-
     return SQL_SUCCESS;
 }
 

@@ -5,6 +5,8 @@
 #include "sqlite64/sqlite3.h"
 
 
+static int callback(void* unused, int argc, char** argv, char** colName);
+
 SQLHENV env;
 
 SQLWCHAR driver[256];
@@ -34,6 +36,7 @@ SQLRETURN ret;
 int main()
 {
 
+    /*
     SQLHDBC dbc;
 
     SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &env);
@@ -49,10 +52,10 @@ int main()
 
     getData(dbc);
 
-    SQLDisconnect(dbc);
+    */
 
     sqlite3* db;
-    char* zErrMsg = 0;
+    char* err = 0;
     int rc;
 
     rc = sqlite3_open("test.db", &db);
@@ -63,14 +66,67 @@ int main()
     }
     else {
         printf("\nOpened sqlite database successfully\n");
+
+
+        rc = sqlite3_exec(db, "SELECT name FROM sqlite_master WHERE type='table' AND name='new_table1';", callback, 0, &err);
+
+        if (rc != SQLITE_OK) {
+            printf("Sqlite Error checking if table exists\n");
+            printf("Error: %s\n", err);
+            sqlite3_free(db);
+        }
+
+        //CREATE SCHEMA `new_schema2` ;
+        //Note: there are no schemas in sqlite
+
+        rc = sqlite3_exec(db, "CREATE TABLE `new_table1` (`id` INT NOT NULL,`name` VARCHAR(45) NULL, PRIMARY KEY(`id`));", callback, 0, &err);
+
+   
+        if (rc != SQLITE_OK) {
+            printf("Sqlite Error creating table\n");
+            printf("Error: %s\n", err);
+            sqlite3_free(db);
+        }
+
+        //INSERT INTO `new_table1` (`id`, `name`) VALUES ('1', 'dsaf');
+        rc = sqlite3_exec(db, "INSERT INTO `new_table1` (`id`, `name`) VALUES ('1', 'dsaf');", callback, 0, &err);
+
+        if (rc != SQLITE_OK) {
+            printf("Sqlite Error inserting\n");
+            printf("Error: %s\n", err);
+            sqlite3_free(db);
+        }
+
+        rc = sqlite3_exec(db, "SELECT * FROM `new_table1`;", callback, 0, &err);
+
+        if (rc != SQLITE_OK) {
+            printf("Sqlite Error selecting\n");
+            printf("Error: %s\n", err);
+            sqlite3_free(db);
+        }
+
+
+
     }
 
     sqlite3_close(db);
 
-    
+    /*
     SQLFreeHandle(SQL_HANDLE_DBC, dbc);
     SQLFreeHandle(SQL_HANDLE_ENV, env);
 
+    SQLDisconnect(dbc);
+    */
+
+}
+
+static int callback(void* unused, int argc, char** argv, char** colName) {
+    int i;
+    for (i = 0; i < argc; i++) {
+        printf("%s = %s\n", colName[i], argv[i] ? argv[i] : "NULL");
+    }
+    printf("\n");
+    return 0;
 }
 
 void getData(SQLHDBC dbc) {

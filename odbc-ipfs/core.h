@@ -40,6 +40,7 @@ Things suggested by ms:
 	The current settings of each connection attribute*/
 typedef struct {
 	ENV* env;
+	void* handle;
 	int temp;
 } DBC;
 
@@ -60,4 +61,7 @@ typedef struct {
 	DBC* dbc;
 	int temp;
 } STMT;
+
+
+
 

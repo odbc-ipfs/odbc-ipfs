@@ -4,9 +4,14 @@
 
 SQLRETURN connect(SQLHENV EnvironmentHandle, _Out_ SQLHDBC* ConnectionHandle) {
 
-	SQLHDBC* dbc = (SQLHDBC*) malloc(sizeof(SQLHDBC));
 
-	if (dbc == NULL) return SQL_ERROR;
+	//Should NOT Malloc
+	//See: https://docs.microsoft.com/en-us/cpp/code-quality/understanding-sal?view=msvc-160
+	//Caller provides space to write to
+
+	//SQLHDBC* dbc = (SQLHDBC*)calloc(1, sizeof(SQLHDBC));
+
+	//if (dbc == NULL) return SQL_ERROR;
 
 	sqlite3* db;
 	char* err = 0;
@@ -18,11 +23,12 @@ SQLRETURN connect(SQLHENV EnvironmentHandle, _Out_ SQLHDBC* ConnectionHandle) {
 		sqlite3_close(db);
 		return SQL_ERROR;
 	}
-	//Todo: set db in ConnectionHandle
 	
-	*dbc = db;
+	//*dbc = db;
 
-	*ConnectionHandle = dbc;
+	//*ConnectionHandle = &dbc;
+
+	*ConnectionHandle = db;
 
 	return SQL_SUCCESS;
 }

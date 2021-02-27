@@ -224,12 +224,26 @@ SQLRETURN  SQL_API SQLError(SQLHENV EnvironmentHandle,
     return SQL_SUCCESS;
 }
 
-SQLRETURN  SQL_API SQLExecDirect
-(
-    SQLHSTMT StatementHandle,
-    _In_reads_opt_(TextLength) SQLCHAR* StatementText,
-    SQLINTEGER TextLength
-);
+#define CHECK_HANDLE(h) if (h == NULL) return SQL_INVALID_HANDLE
+////////////////////////////////////////////////////////////////////////////////
+SQLRETURN SQL_API
+SQLExecDirect(SQLHSTMT stmt, SQLCHAR *query, SQLINTEGER queryLen)
+{
+    SQLRETURN ret;
+    char *q;
+    
+
+    CHECK_HANDLE(stmt);
+    // if ((ret= prepare(stmt, query, query_len))) // will be used after prepare has been written
+    //     return ret;
+    // ret = execute(stmt, (char *) query);
+
+	ret = execute(stmt, (char *) query);
+
+    return ret;
+}
+	
+//////////////////////////////////////////////////////////////
 
 SQLRETURN  SQL_API SQLExecute(SQLHSTMT StatementHandle) {
     return SQL_SUCCESS;

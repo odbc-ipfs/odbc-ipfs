@@ -18,6 +18,8 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
     int a = SQLAllocConnect(NULL, NULL);
 
+
+
     std::cout << "Hello ODBC-IPFS world";
     std::cout << a;
 

@@ -230,16 +230,14 @@ SQLRETURN SQL_API
 SQLExecDirect(SQLHSTMT stmt, SQLCHAR *query, SQLINTEGER queryLen)
 {
     SQLRETURN ret;
-    char *q;
-    
 
     CHECK_HANDLE(stmt);
     // if ((ret= prepare(stmt, query, query_len))) // will be used after prepare has been written
     //     return ret;
     // ret = execute(stmt, (char *) query);
 
-	ret = execute(stmt, (char *) query);
-
+	// ret = execute(stmt, (char *) query);
+    ret = SQL_SUCCESS;
     return ret;
 }
 	

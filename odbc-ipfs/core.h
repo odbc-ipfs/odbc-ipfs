@@ -23,7 +23,6 @@ Things suggested by ms:
 */
 
 typedef struct {
-	int temp;
 } ENV;
 
 /*Driver internal structure for database connection (HDBC).
@@ -40,7 +39,12 @@ Things suggested by ms:
 	The current settings of each connection attribute*/
 typedef struct {
 	ENV* env;
-	int temp;
+	SQLCHAR* serverName;
+	SQLSMALLINT serverLength;
+	SQLCHAR* userName;
+	SQLSMALLINT userLength;
+	SQLCHAR* auth;
+	SQLSMALLINT authLength;
 } DBC;
 
 /*Driver internal structure representing SQL statement (HSTMT).
@@ -58,6 +62,5 @@ Things suggested by ms:
 */
 typedef struct {
 	DBC* dbc;
-	int temp;
 } STMT;
 

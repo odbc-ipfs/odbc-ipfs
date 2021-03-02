@@ -2,6 +2,7 @@
 #include <utility>
 #include <limits.h>
 #include "core.h"
+#include "connector.h"
 
 /*
 allocates ConnectionHandle and links EnvironmentHandle to it then replaces the input pointer to the allocated pointer*/
@@ -13,19 +14,22 @@ SQLRETURN  SQL_API SQLAllocConnect(SQLHENV EnvironmentHandle,
     if (EnvironmentHandle == NULL) {
         return SQL_INVALID_HANDLE;
     }
-    if (ConnectionHandle == NULL) {
-        return SQL_INVALID_HANDLE;
-    }
+    //if (ConnectionHandle == NULL) {
+    //    return SQL_INVALID_HANDLE;
+    //}
 
     env = (ENV*)EnvironmentHandle;
     dbc = (DBC*)malloc(sizeof(DBC));
 
-    if (dbc == NULL) {
-        *ConnectionHandle = SQL_NULL_HDBC;
-        return SQL_ERROR;
-    }
+    //if (dbc == NULL) {
+    //   *ConnectionHandle = SQL_NULL_HDBC;
+    //   return SQL_ERROR;
+    //}
 
     dbc->env = env;
+
+    //connect(EnvironmentHandle, (SQLHDBC*) dbc);
+
     return SQL_SUCCESS;
 }
 
@@ -44,6 +48,8 @@ SQLRETURN  SQL_API SQLAllocEnv(_Out_ SQLHENV* EnvironmentHandle) {
     }
     
     *EnvironmentHandle = (SQLHENV)e;
+
+    
         
     return SQL_SUCCESS;
 }
@@ -75,7 +81,6 @@ SQLRETURN  SQL_API SQLAllocHandle(SQLSMALLINT HandleType,
         default:
             return SQL_ERROR;
     }
-
 
     return error;
 }

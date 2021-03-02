@@ -4,7 +4,7 @@
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 #include <Windows.h>
 #include "..\odbc-ipfs\core.h"
-
+#include <sql.h>
 
 
 namespace odbcipfsunittest
@@ -21,13 +21,24 @@ namespace odbcipfsunittest
 			SQLHENV env;
 			SQLRETURN ret;
 
-			SQLRETURN success = SQL_SUCCESS;
-
-
 			ret = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &env);
+
+			Assert::AreEqual(ret, (SQLRETURN) SQL_SUCCESS);
+
 			//SQLSetEnvAttr(env, SQL_ATTR_ODBC_VERSION, (SQLPOINTER)SQL_OV_ODBC3, 0);
 
-			Assert::AreEqual(ret, success);
+			ret = SQLAllocHandle(SQL_HANDLE_DBC, env, &dbc);
+
+			char res[50];
+			sprintf_s(res, "Ret: %d", ret);
+
+			Logger::WriteMessage(res);
+
+			//Assert::AreEqual(ret, (SQLRETURN) SQL_SUCCESS);
+
+
+			//Logger::WriteMessage("Testing");
+			
 
 
 		}

@@ -26,6 +26,7 @@ SQLRETURN  SQL_API SQLAllocConnect(SQLHENV EnvironmentHandle,
     }
 
     dbc->env = env;
+    *ConnectionHandle = (SQLHDBC)dbc;
 
     return SQL_SUCCESS;
 }
@@ -104,6 +105,7 @@ SQLRETURN  SQL_API SQLAllocStmt(SQLHDBC ConnectionHandle,
     }
 
     stmt->dbc = dbc;
+    *StatementHandle = (SQLHSTMT)stmt;
 
     return SQL_SUCCESS;
 }

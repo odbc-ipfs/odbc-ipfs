@@ -4,7 +4,12 @@
 #include "core.h"
 //////////////////////////////////////////////////////
 #define CHECK_HANDLE(h) if (h == NULL) return SQL_INVALID_HANDLE
-// #define CHECK_CHARATTR(h) if()
+#define strmake(dst, src, max, lenp) { \
+    int len = strlen(src); \
+    int cnt = min(len + 1, max); \
+    strncpy(dst, src, cnt); \
+    *lenp = (cnt > len) ? len : cnt; \
+}
 ////////////////////////////////////////////////////////
 
 /*
@@ -178,7 +183,7 @@ SQLRETURN SQL_API SQLColAttribute (SQLHSTMT  StatementHandle, SQLUSMALLINT Colum
 
     CHECK_HANDLE(StatementHandle);
     SQLINTEGER len= SQL_NTS;
-    STMT *stmt= (STMT *)StatmentHandle;
+    STMT *stmt= (STMT *)StatementHandle;
 
     if(FieldIdentifier == NULL){   // convert the field identifier to a string if not null in case the switch cases below don't work
         printf("No Attribute specified\n");
@@ -212,13 +217,11 @@ SQLRETURN SQL_API SQLColAttribute (SQLHSTMT  StatementHandle, SQLUSMALLINT Colum
         break;
     case SQL_DESC_NAME:
         if(CharacterAttributePtr && BufferLength > 1)  // If memory has been allocated for the results
-            strmake((char *)CharacterAttributePtr, (char *)stmt->colName[ColumnNumber], BufferLength - 1);
+            strmake((char *)CharacterAttributePtr, (char *)stmt->colName[ColumnNumber], BufferLength - 1,len); // use strmake like this whenever moving the data
         break;
     }
     
-    len = strlen((char *)argv[0]);
-        
-    if(len > Bufferlength-1) //the length of the value is greater than the buffer size
+    if(len > BufferLength-1) //the length of the value is greater than the buffer size
         return SQL_ERROR;
 
     if (StringLengthPtr) // If memory was allocated for the stringlenghtptr

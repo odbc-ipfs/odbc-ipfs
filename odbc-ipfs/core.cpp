@@ -182,7 +182,7 @@ SQLRETURN SQL_API SQLColAttribute (SQLHSTMT  StatementHandle, SQLUSMALLINT Colum
 
     if(FieldIdentifier == NULL){   // convert the field identifier to a string if not null in case the switch cases below don't work
         printf("No Attribute specified\n");
-
+    }
     if(stmt->argc <= 0){ // This isn't like main, there should only be columns here and no executable
         printf("No columns in result from database\n");
         return SQL_SUCCESS;

@@ -20,6 +20,8 @@ SQLRETURN execute(STMT stmt, char* StatementText) {
 	return SQL_SUCCESS;
 }
 
+
+
 static int callback(void* unused, int argc, char** argv, char** colName) {
 	int i;
 	for (i = 0; i < argc; i++) {

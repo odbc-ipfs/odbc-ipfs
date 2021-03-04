@@ -1,7 +1,11 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "pch.h" // use stdafx.h in Visual Studio 2017 and earlier
 #include <utility>
 #include <limits.h>
 #include "core.h"
+#include <iostream>
+
 //////////////////////////////////////////////////////
 #define CHECK_HANDLE(h) if (h == NULL) return SQL_INVALID_HANDLE
 #define strmake(dst, src, max, lenp) { \
@@ -193,7 +197,7 @@ SQLRETURN SQL_API SQLColAttribute (SQLHSTMT  StatementHandle, SQLUSMALLINT Colum
         return SQL_SUCCESS;
         return SQL_ERROR; // If thats what we want
     }
-    if(ColumnNumber < 0 || ColumnNumber >= argc){ // Not valid index
+    if(ColumnNumber < 0 || ColumnNumber >= stmt->argc){ // Not valid index
         printf("Not a valid column index\n");
         return SQL_ERROR;
     }
@@ -217,7 +221,7 @@ SQLRETURN SQL_API SQLColAttribute (SQLHSTMT  StatementHandle, SQLUSMALLINT Colum
         break;
     case SQL_DESC_NAME:
         if(CharacterAttributePtr && BufferLength > 1)  // If memory has been allocated for the results
-            strmake((char *)CharacterAttributePtr, (char *)stmt->colName[ColumnNumber], BufferLength - 1,len); // use strmake like this whenever moving the data
+            strmake((char *)CharacterAttributePtr, (char *)stmt->colName[ColumnNumber], BufferLength - 1,&len); // use strmake like this whenever moving the data
         break;
     }
     

@@ -1,5 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
-
 #include "pch.h" // use stdafx.h in Visual Studio 2017 and earlier
 #include <utility>
 #include <limits.h>
@@ -11,7 +9,7 @@
 #define strmake(dst, src, max, lenp) { \
     int len = strlen(src); \
     int cnt = min(len + 1, max); \
-    strncpy(dst, src, cnt); \
+    strncpy_s(dst, max, src, cnt); \
     *lenp = (cnt > len) ? len : cnt; \
 }
 ////////////////////////////////////////////////////////

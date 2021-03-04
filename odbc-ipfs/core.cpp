@@ -263,6 +263,20 @@ SQLRETURN  SQL_API SQLConnect(SQLHDBC ConnectionHandle,
     _In_reads_(NameLength1) SQLCHAR* ServerName, SQLSMALLINT NameLength1,
     _In_reads_(NameLength2) SQLCHAR* UserName, SQLSMALLINT NameLength2,
     _In_reads_(NameLength3) SQLCHAR* Authentication, SQLSMALLINT NameLength3) {
+
+    DBC* dbc;
+    if (ConnectionHandle == NULL) {
+        return SQL_INVALID_HANDLE;
+    }
+
+    dbc = (DBC*)ConnectionHandle;
+    dbc->serverName = ServerName;
+    dbc->serverLength = NameLength1;
+    dbc->userName = UserName;
+    dbc->userLength = NameLength2;
+    dbc->auth = Authentication;
+    dbc->authLength = NameLength3;
+
     return SQL_SUCCESS;
 }
 

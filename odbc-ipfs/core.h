@@ -59,5 +59,8 @@ Things suggested by ms:
 typedef struct {
 	DBC* dbc;
 	int temp;
+	int argc; //the number of columns in the result
+	char** argv; //an array of pointers to strings obtained
+	char** colName; // an array of pointers to strings where each entry represents the name of corresponding result column as obtained
 } STMT;
 

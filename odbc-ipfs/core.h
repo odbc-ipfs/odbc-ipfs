@@ -39,6 +39,8 @@ Things suggested by ms:
 	The current settings of each connection attribute*/
 typedef struct {
 	ENV* env;
+	void* handle;
+	int temp;
 	SQLCHAR* serverName;
 	SQLSMALLINT serverLength;
 	SQLCHAR* userName;
@@ -67,4 +69,7 @@ typedef struct {
 	char** argv; //an array of pointers to strings obtained
 	char** colName; // an array of pointers to strings where each entry represents the name of corresponding result column as obtained
 } STMT;
+
+
+
 

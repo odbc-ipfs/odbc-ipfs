@@ -2,6 +2,18 @@
 #include <utility>
 #include <limits.h>
 #include "core.h"
+#include "connector.h"
+#include <iostream>
+
+//////////////////////////////////////////////////////
+#define CHECK_HANDLE(h) if (h == NULL) return SQL_INVALID_HANDLE
+#define strmake(dst, src, max, lenp) { \
+    int len = strlen(src); \
+    int cnt = min(len + 1, max); \
+    strncpy_s(dst, max, src, cnt); \
+    *lenp = (cnt > len) ? len : cnt; \
+}
+////////////////////////////////////////////////////////
 
 /*
 allocates ConnectionHandle and links EnvironmentHandle to it then replaces the input pointer to the allocated pointer*/
@@ -13,19 +25,22 @@ SQLRETURN  SQL_API SQLAllocConnect(SQLHENV EnvironmentHandle,
     if (EnvironmentHandle == NULL) {
         return SQL_INVALID_HANDLE;
     }
-    if (ConnectionHandle == NULL) {
-        return SQL_INVALID_HANDLE;
-    }
+    //if (ConnectionHandle == NULL) {
+    //    return SQL_INVALID_HANDLE;
+    //}
 
     env = (ENV*)EnvironmentHandle;
     dbc = (DBC*)malloc(sizeof(DBC));
 
-    if (dbc == NULL) {
-        *ConnectionHandle = SQL_NULL_HDBC;
-        return SQL_ERROR;
-    }
+    //if (dbc == NULL) {
+    //   *ConnectionHandle = SQL_NULL_HDBC;
+    //   return SQL_ERROR;
+    //}
 
     dbc->env = env;
+    *ConnectionHandle = (SQLHDBC)dbc;
+
+    //connect(EnvironmentHandle, (SQLHDBC*) dbc);
 
     return SQL_SUCCESS;
 }
@@ -45,6 +60,8 @@ SQLRETURN  SQL_API SQLAllocEnv(_Out_ SQLHENV* EnvironmentHandle) {
     }
     
     *EnvironmentHandle = (SQLHENV)e;
+
+    
         
     return SQL_SUCCESS;
 }
@@ -77,7 +94,6 @@ SQLRETURN  SQL_API SQLAllocHandle(SQLSMALLINT HandleType,
             return SQL_ERROR;
     }
 
-
     return error;
 }
 #endif
@@ -104,6 +120,7 @@ SQLRETURN  SQL_API SQLAllocStmt(SQLHDBC ConnectionHandle,
     }
 
     stmt->dbc = dbc;
+    *StatementHandle = (SQLHSTMT)stmt;
 
     return SQL_SUCCESS;
 }
@@ -142,12 +159,83 @@ SQLRETURN  SQL_API SQLCloseCursor(SQLHSTMT StatementHandle) {
 }
 
 #ifdef _WIN64
-SQLRETURN  SQL_API SQLColAttribute(SQLHSTMT StatementHandle,
-    SQLUSMALLINT ColumnNumber, SQLUSMALLINT FieldIdentifier,
-    _Out_writes_bytes_opt_(BufferLength) SQLPOINTER CharacterAttribute, SQLSMALLINT BufferLength,
-    _Out_opt_ SQLSMALLINT* StringLength, _Out_opt_ SQLLEN* NumericAttribute) {
+// SQLRETURN  SQL_API SQLColAttribute(SQLHSTMT StatementHandle,
+//     SQLUSMALLINT ColumnNumber, SQLUSMALLINT FieldIdentifier,
+//     _Out_writes_bytes_opt_(BufferLength) SQLPOINTER CharacterAttribute, SQLSMALLINT BufferLength,
+//     _Out_opt_ SQLSMALLINT* StringLength, _Out_opt_ SQLLEN* NumericAttribute) {
+//     return SQL_SUCCESS;
+// }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+  Retrieve an attribute of a column in a result set.
+  @param[in]  StatementHandle          Handle to statement
+  @param[in]  ColumnNumber       The column to retrieve data for, indexed from 1
+  @param[in]  FieldIdentifier        The attribute to be retrieved
+  @param[out] CharacterAttributePtr      Pointer to a string pointer for returning strings
+                             (caller must make their own copy)
+  @param[out] NumericAttributePtr       Pointer to an integer to return the value if the
+                             @a attrib corresponds to a numeric type
+  @since ODBC 1.0
+*/
+// It isn't clear if sqlite3_exec allocates memory for the parameters of callback or whether we have to do it ourselves whenever the STMT class is created
+// using table with structure of 
+//          col1|col2|col3
+// attr1 |     |    |
+// attr2 |     |    |
+// attr3 |     |    |
+//
+SQLRETURN SQL_API SQLColAttribute (SQLHSTMT  StatementHandle, SQLUSMALLINT ColumnNumber, SQLUSMALLINT FieldIdentifier, SQLPOINTER CharacterAttributePtr, SQLSMALLINT BufferLength, SQLSMALLINT *StringLengthPtr, SQLLEN *NumericAttributePtr){
+
+
+    CHECK_HANDLE(StatementHandle);
+    SQLINTEGER len= SQL_NTS;
+    STMT *stmt= (STMT *)StatementHandle;
+
+    if(FieldIdentifier == NULL){   // convert the field identifier to a string if not null in case the switch cases below don't work
+        printf("No Attribute specified\n");
+    }
+    if(stmt->argc <= 0){ // This isn't like main, there should only be columns here and no executable
+        printf("No columns in result from database\n");
+        return SQL_SUCCESS;
+        return SQL_ERROR; // If thats what we want
+    }
+    if(ColumnNumber < 0 || ColumnNumber >= stmt->argc){ // Not valid index
+        printf("Not a valid column index\n");
+        return SQL_ERROR;
+    }
+
+    if(stmt->argv[ColumnNumber] == NULL){ // there is no allocated memory for that column //If an element of a result row is NULL then the corresponding string pointer for the sqlite3_exec() callback is a NULL pointer.
+        printf("Empty result row\n");
+        return SQL_SUCCESS;
+        return SQL_ERROR; // If thats what we want
+    }
+
+    switch(FieldIdentifier)
+    {
+    case SQL_DESC_TYPE:
+        if(ColumnNumber == 0)
+            *(SQLINTEGER *)NumericAttributePtr = SQL_INTEGER; // Did this because of MYSQL but the windows website says there is more
+        return SQL_SUCCESS;   
+        break;
+    case SQL_DESC_COUNT: 
+        *(SQLINTEGER *)NumericAttributePtr = stmt->argc;
+        return SQL_SUCCESS;
+        break;
+    case SQL_DESC_NAME:
+        if(CharacterAttributePtr && BufferLength > 1)  // If memory has been allocated for the results
+            strmake((char *)CharacterAttributePtr, (char *)stmt->colName[ColumnNumber], BufferLength - 1,&len); // use strmake like this whenever moving the data
+        break;
+    }
+    
+    if(len > BufferLength-1) //the length of the value is greater than the buffer size
+        return SQL_ERROR;
+
+    if (StringLengthPtr) // If memory was allocated for the stringlenghtptr
+        *StringLengthPtr = (SQLSMALLINT)len;
+
     return SQL_SUCCESS;
 }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #else
 SQLRETURN  SQL_API SQLColAttribute(SQLHSTMT StatementHandle,
     SQLUSMALLINT ColumnNumber, SQLUSMALLINT FieldIdentifier,
@@ -179,6 +267,20 @@ SQLRETURN  SQL_API SQLConnect(SQLHDBC ConnectionHandle,
     _In_reads_(NameLength1) SQLCHAR* ServerName, SQLSMALLINT NameLength1,
     _In_reads_(NameLength2) SQLCHAR* UserName, SQLSMALLINT NameLength2,
     _In_reads_(NameLength3) SQLCHAR* Authentication, SQLSMALLINT NameLength3) {
+
+    DBC* dbc;
+    if (ConnectionHandle == NULL) {
+        return SQL_INVALID_HANDLE;
+    }
+
+    dbc = (DBC*)ConnectionHandle;
+    dbc->serverName = ServerName;
+    dbc->serverLength = NameLength1;
+    dbc->userName = UserName;
+    dbc->userLength = NameLength2;
+    dbc->auth = Authentication;
+    dbc->authLength = NameLength3;
+
     return SQL_SUCCESS;
 }
 
@@ -224,12 +326,24 @@ SQLRETURN  SQL_API SQLError(SQLHENV EnvironmentHandle,
     return SQL_SUCCESS;
 }
 
-SQLRETURN  SQL_API SQLExecDirect
-(
-    SQLHSTMT StatementHandle,
-    _In_reads_opt_(TextLength) SQLCHAR* StatementText,
-    SQLINTEGER TextLength
-);
+
+////////////////////////////////////////////////////////////////////////////////
+SQLRETURN SQL_API
+SQLExecDirect(SQLHSTMT stmt, SQLCHAR *query, SQLINTEGER queryLen)
+{
+    SQLRETURN ret;
+
+    CHECK_HANDLE(stmt);
+    // if ((ret= prepare(stmt, query, query_len))) // will be used after prepare has been written
+    //     return ret;
+    // ret = execute(stmt, (char *) query);
+
+	// ret = execute(stmt, (char *) query);
+    ret = SQL_SUCCESS;
+    return ret;
+}
+	
+//////////////////////////////////////////////////////////////
 
 SQLRETURN  SQL_API SQLExecute(SQLHSTMT StatementHandle) {
     return SQL_SUCCESS;

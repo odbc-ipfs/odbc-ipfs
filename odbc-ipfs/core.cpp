@@ -552,10 +552,40 @@ SQLRETURN  SQL_API SQLSetDescRec(SQLHDESC DescriptorHandle,
     return SQL_SUCCESS;
 }
 
+
+/*
+in MySQL it is in options.cc
+*/
 SQLRETURN  SQL_API SQLSetEnvAttr(SQLHENV EnvironmentHandle,
     SQLINTEGER Attribute, _In_reads_bytes_opt_(StringLength) SQLPOINTER Value,
     SQLINTEGER StringLength) {
-    return SQL_SUCCESS;
+
+    SQLRETURN error = SQL_ERROR;
+    ENV* e;
+
+    if (EnvironmentHandle == SQL_NULL_HENV) {
+        return SQL_INVALID_HANDLE;
+    }
+
+    e = (ENV*)EnvironmentHandle;
+
+    switch (Attribute) {
+    case SQL_ATTR_ODBC_VERSION:
+        if (!Value) {
+            break;
+        }
+        if (Value == (SQLPOINTER)SQL_OV_ODBC2) {
+            e->version = 2;
+            error = SQL_SUCCESS;
+        }
+        else if (Value == (SQLPOINTER)SQL_OV_ODBC3) {
+            e->version = 3;
+            error = SQL_SUCCESS;
+        }
+        break;
+    }
+
+    return error;
 }
 #endif /* ODBCVER >= 0x0300 */
 

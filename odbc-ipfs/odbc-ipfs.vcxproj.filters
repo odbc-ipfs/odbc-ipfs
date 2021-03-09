@@ -57,4 +57,9 @@
       <Filter>Source Files\connectors</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="odbc-ipfs.def">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>

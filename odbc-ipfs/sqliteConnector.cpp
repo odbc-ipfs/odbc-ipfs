@@ -1,7 +1,7 @@
 #include "pch.h" // use stdafx.h in Visual Studio 2017 and earlier
 #include <utility>
 #include "connector.h"
-
+#include "pubsub.h"
 static int callback(void* unused, int argc, char** argv, char** colName);
 
 //SQLHSTMT StatementHandle, SQLCHAR* StatementText, SQLINTEGER   TextLength
@@ -11,6 +11,14 @@ SQLRETURN SQL_API execute(SQLHSTMT sqlstmt, SQLWCHAR* StatementText) {
 
 	OutputDebugString(L"connector execute\n");
 
+	char text[512]; //Need to change this.
+	sprintf_s(text, "%ws", (wchar_t*)StatementText);
+
+	char* topic = _strdup("Hello World");
+	Publish(topic, text);
+
+
+	/*
 	STMT* stmt = (STMT*)sqlstmt;
 
 
@@ -48,6 +56,7 @@ SQLRETURN SQL_API execute(SQLHSTMT sqlstmt, SQLWCHAR* StatementText) {
 
 
 	OutputDebugString(L"execute SQL_SUCCESS\n");
+	*/
 
 	return SQL_SUCCESS;
 }
@@ -88,6 +97,8 @@ SQLRETURN connect(SQLHENV EnvironmentHandle, SQLHDBC* ConnectionHandle) {
 
 	OutputDebugString(L"connector connect\n");
 
+	CreateShell();
+	/*
 	//SQLHDBC* dbc = (SQLHDBC*)calloc(1, sizeof(SQLHDBC));
 
 	//if (dbc == NULL) return SQL_ERROR;
@@ -116,13 +127,15 @@ SQLRETURN connect(SQLHENV EnvironmentHandle, SQLHDBC* ConnectionHandle) {
 
 	OutputDebugString(L"connector SQL_SUCCESS\n");
 
+	*/
+
 	return SQL_SUCCESS;
 }
 
 SQLRETURN disconnect(SQLHDBC ConnectionHandle) {
 
 	OutputDebugString(L"connector disconnect\n");
-
+	/*
 	DBC* dbc = (DBC*)ConnectionHandle;
 
 	sqlite3* db = (sqlite3*)dbc->handle;
@@ -134,6 +147,7 @@ SQLRETURN disconnect(SQLHDBC ConnectionHandle) {
 	}
 
 	sqlite3_close(db);
+	*/
 
 	return SQL_SUCCESS;
 

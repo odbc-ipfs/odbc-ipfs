@@ -149,6 +149,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>odbc-ipfs.def</ModuleDefinitionFile>
+      <AdditionalDependencies>PUBSUB.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -156,6 +157,7 @@
     <ClInclude Include="core.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="pubsub.h" />
     <ClInclude Include="sqlite64\sqlite3.h" />
     <ClInclude Include="sqlite64\sqlite3ext.h" />
   </ItemGroup>
@@ -180,6 +182,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="odbc-ipfs.def" />
+    <None Include="PUBSUB.dll">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="PUBSUB.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

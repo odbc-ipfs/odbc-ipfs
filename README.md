@@ -3,8 +3,11 @@
 
 Open Database Connectivity (ODBC) driver for IPFS
 
+This driver uses libp2p's pubsub to send databse queries. IPFS nodes then parse the request and return a response and synchronize among themselves.
 
-Note: There is no built-in installer at the moment. You must manually edit the registry and create a .dsn file for now.
+# WARNING: All database transactions are currently public using libp2p pubsub. NOTHING is encrypted.
+
+### Note: There is no built-in installer at the moment. You must manually edit the registry and create a .dsn file for now.
 
 ### Creating File DSN File
 1. Create new file named "odbc-ipfs.dsn"

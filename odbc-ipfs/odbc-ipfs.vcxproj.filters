@@ -36,6 +36,9 @@
     <ClInclude Include="connector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="pubsub.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -61,5 +64,9 @@
     <None Include="odbc-ipfs.def">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="PUBSUB.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="PUBSUB.lib" />
   </ItemGroup>
 </Project>

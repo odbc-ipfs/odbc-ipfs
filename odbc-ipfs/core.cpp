@@ -15,10 +15,49 @@
 }
 ////////////////////////////////////////////////////////
 
+
+/*
+SQLAllocHandle replaces SQLAllocConnect, SQLAllocEnv, and SQLAllocStmt
+
+calls on different allocation depending on the HandleType*/
+SQLRETURN  SQL_API SQLAllocHandle(SQLSMALLINT HandleType,
+    SQLHANDLE InputHandle, _Out_ SQLHANDLE * OutputHandle) {
+    SQLRETURN error = SQL_ERROR;
+
+
+    OutputDebugString(L"SQLAllocHandle called\n");
+
+    switch (HandleType) {
+    case SQL_HANDLE_ENV:
+        error = SQLAllocEnv(OutputHandle);
+        break;
+    case SQL_HANDLE_DBC:
+        error = SQLAllocConnect(InputHandle, OutputHandle);
+        break;
+    case SQL_HANDLE_STMT:
+        error = SQLAllocStmt(InputHandle, OutputHandle);
+        break;
+        /*
+        case SQL_HANDLE_DESC:
+            break;
+        */
+    default:
+        *OutputHandle = SQL_NULL_HANDLE;
+        return SQL_ERROR;
+    }
+
+    return error;
+}
+
+
 /*
 allocates ConnectionHandle and links EnvironmentHandle to it then replaces the input pointer to the allocated pointer*/
 SQLRETURN  SQL_API SQLAllocConnect(SQLHENV EnvironmentHandle,
     _Out_ SQLHDBC* ConnectionHandle) {
+
+    OutputDebugString(L"SQLAllocConnect called\n");
+    *ConnectionHandle = SQL_NULL_HDBC;
+
     DBC* dbc;
     ENV* env;
 
@@ -30,17 +69,18 @@ SQLRETURN  SQL_API SQLAllocConnect(SQLHENV EnvironmentHandle,
     //}
 
     env = (ENV*)EnvironmentHandle;
-    dbc = (DBC*)malloc(sizeof(DBC));
+    dbc = new DBC();
 
-    //if (dbc == NULL) {
-    //   *ConnectionHandle = SQL_NULL_HDBC;
-    //   return SQL_ERROR;
-    //}
+    if (dbc == NULL) {
+        OutputDebugString(L"SQLAllocConnect ERROR: dbc == NULL\n");
+        *ConnectionHandle = SQL_NULL_HDBC;
+        return SQL_ERROR;
+    }
 
     dbc->env = env;
     *ConnectionHandle = (SQLHDBC)dbc;
 
-    //connect(EnvironmentHandle, (SQLHDBC*) dbc);
+    connect(EnvironmentHandle, ConnectionHandle);
 
     return SQL_SUCCESS;
 }
@@ -48,72 +88,45 @@ SQLRETURN  SQL_API SQLAllocConnect(SQLHENV EnvironmentHandle,
 /*
 allocates EnvironmentHandle and replaces input pointer to the allocated pointer*/
 SQLRETURN  SQL_API SQLAllocEnv(_Out_ SQLHENV* EnvironmentHandle) {
+
+    OutputDebugString(L"SQLAllocEnv called\n");
+
+    *EnvironmentHandle = SQL_NULL_HENV;
+
     ENV* e;
     if (EnvironmentHandle == NULL) {
         return SQL_INVALID_HANDLE;
     }
 
-    e = (ENV*) malloc(sizeof(ENV));
+    e = new ENV();
     if (e == NULL) {
         *EnvironmentHandle = SQL_NULL_HENV;
         return SQL_ERROR;
     }
-    
+
     *EnvironmentHandle = (SQLHENV)e;
 
-    
-        
     return SQL_SUCCESS;
 }
 
-
-/*
-SQLAllocHandle replaces SQLAllocConnect, SQLAllocEnv, and SQLAllocStmt
-
-calls on different allocation depending on the HandleType*/
-#if (ODBCVER >= 0x0300)
-SQLRETURN  SQL_API SQLAllocHandle(SQLSMALLINT HandleType,
-    SQLHANDLE InputHandle, _Out_ SQLHANDLE* OutputHandle) {
-    SQLRETURN error = SQL_ERROR;
-
-    switch (HandleType) {
-        case SQL_HANDLE_ENV:
-            error = SQLAllocEnv(OutputHandle);
-            break;
-        case SQL_HANDLE_DBC:
-            error = SQLAllocConnect(InputHandle, OutputHandle);
-            break;
-        case SQL_HANDLE_STMT:
-            error = SQLAllocStmt(InputHandle, OutputHandle);
-            break;
-        /*
-        case SQL_HANDLE_DESC:
-            break;
-        */
-        default:
-            return SQL_ERROR;
-    }
-
-    return error;
-}
-#endif
-
 SQLRETURN  SQL_API SQLAllocStmt(SQLHDBC ConnectionHandle,
     _Out_ SQLHSTMT* StatementHandle) {
+
+    OutputDebugString(L"SQLAllocStmt called\n");
+
+    *StatementHandle = SQL_NULL_HSTMT;
+
     DBC* dbc;
     STMT* stmt;
 
     if (ConnectionHandle == NULL) {
         return SQL_INVALID_HANDLE;
     }
-    if (StatementHandle == NULL) {
-        return SQL_INVALID_HANDLE;
-    }
-    
+
     dbc = (DBC*)ConnectionHandle;
-    
-    stmt = (STMT*)malloc(sizeof(STMT));
-    
+
+    stmt = new(STMT);
+
     if (stmt == NULL) {
         *StatementHandle = SQL_NULL_HSTMT;
         return SQL_ERROR;
@@ -125,40 +138,93 @@ SQLRETURN  SQL_API SQLAllocStmt(SQLHDBC ConnectionHandle,
     return SQL_SUCCESS;
 }
 
-SQLRETURN  SQL_API SQLBindCol(SQLHSTMT StatementHandle,
+SQLRETURN  SQL_API SQLFreeHandle(SQLSMALLINT HandleType, SQLHANDLE Handle) {
+
+    OutputDebugString(L"SQLFreeHandle called\n");
+
+    return SQL_SUCCESS;
+}
+
+SQLRETURN  SQL_API SQLFreeStmt(SQLHSTMT StatementHandle,
+    SQLUSMALLINT Option) {
+
+    OutputDebugString(L"SQLFreeStmt called\n");
+
+    return SQL_SUCCESS;
+}
+
+SQLRETURN SQL_API SQLBindCol(SQLHSTMT StatementHandle,
     SQLUSMALLINT ColumnNumber, SQLSMALLINT TargetType,
     _Inout_updates_opt_(_Inexpressible_(BufferLength)) SQLPOINTER TargetValue,
     SQLLEN BufferLength, _Inout_opt_ SQLLEN* StrLen_or_Ind) {
+
+    OutputDebugString(L"SQLBindCol called\n");
+
+    SQLINTEGER* sqlint = new SQLINTEGER();
+    *sqlint = 3;
+
+    TargetValue = (SQLPOINTER) sqlint;
+
     return SQL_SUCCESS;
 }
 
-#if (ODBCVER >= 0x0300)
-__declspec(deprecated("ODBC API: SQLBindParam is deprecated. Please use SQLBindParameter instead."))
-SQLRETURN  SQL_API SQLBindParam(SQLHSTMT StatementHandle,
-    SQLUSMALLINT ParameterNumber, SQLSMALLINT ValueType,
-    SQLSMALLINT ParameterType, SQLULEN LengthPrecision,
-    SQLSMALLINT ParameterScale, SQLPOINTER ParameterValue,
-    SQLLEN* StrLen_or_Ind) {
-    return SQL_SUCCESS;
-}
-#endif
-
-SQLRETURN  SQL_API SQLCancel(SQLHSTMT StatementHandle) {
-    return SQL_SUCCESS;
-}
-
-#if (ODBCVER >= 0x0380)
-SQLRETURN  SQL_API SQLCancelHandle(SQLSMALLINT HandleType, SQLHANDLE InputHandle) {
-    return SQL_SUCCESS;
-}
-#endif // ODBCVER >= 0x0380
-
-#if (ODBCVER >= 0x0300)
-SQLRETURN  SQL_API SQLCloseCursor(SQLHSTMT StatementHandle) {
+SQLRETURN SQLBindParameter(
+    SQLHSTMT        StatementHandle,
+    SQLUSMALLINT    ParameterNumber,
+    SQLSMALLINT     InputOutputType,
+    SQLSMALLINT     ValueType,
+    SQLSMALLINT     ParameterType,
+    SQLULEN         ColumnSize,
+    SQLSMALLINT     DecimalDigits,
+    SQLPOINTER      ParameterValuePtr,
+    SQLLEN          BufferLength,
+    SQLLEN* StrLen_or_IndPtr) {
+    OutputDebugString(L"SQLBindParameter called\n");
     return SQL_SUCCESS;
 }
 
-#ifdef _WIN64
+SQLRETURN SQLNumParams(
+    SQLHSTMT        StatementHandle,
+    SQLSMALLINT* ParameterCountPtr) {
+    OutputDebugString(L"SQLNumParams called\n");
+    return SQL_SUCCESS;
+}
+
+SQLRETURN  SQL_API SQLParamData(SQLHSTMT StatementHandle,
+    _Out_opt_ SQLPOINTER* Value) {
+    OutputDebugString(L"SQLParamData called\n");
+    return SQL_SUCCESS;
+}
+
+SQLRETURN  SQL_API SQLPutData(SQLHSTMT StatementHandle,
+    _In_reads_(_Inexpressible_(StrLen_or_Ind)) SQLPOINTER Data, SQLLEN StrLen_or_Ind) {
+    OutputDebugString(L"SQLPutData called\n");
+    return SQL_SUCCESS;
+}
+
+SQLRETURN SQL_API SQLCloseCursor(SQLHSTMT StatementHandle) {
+    OutputDebugString(L"SQLCloseCursor called\n");
+
+    return SQL_SUCCESS;
+}
+
+SQLRETURN  SQL_API SQLGetCursorName(SQLHSTMT StatementHandle,
+    _Out_writes_opt_(BufferLength) SQLCHAR* CursorName,
+    SQLSMALLINT BufferLength,
+    _Out_opt_
+    SQLSMALLINT* NameLengthPtr) {
+    OutputDebugString(L"SQLGetCursorName called\n");
+    return SQL_SUCCESS;
+}
+
+SQLRETURN  SQL_API SQLSetCursorName(SQLHSTMT StatementHandle,
+    _In_reads_(NameLength) SQLCHAR* CursorName,
+    SQLSMALLINT NameLength) {
+    OutputDebugString(L"SQLSetCursorName called\n");
+    return SQL_SUCCESS;
+}
+
+
 // SQLRETURN  SQL_API SQLColAttribute(SQLHSTMT StatementHandle,
 //     SQLUSMALLINT ColumnNumber, SQLUSMALLINT FieldIdentifier,
 //     _Out_writes_bytes_opt_(BufferLength) SQLPOINTER CharacterAttribute, SQLSMALLINT BufferLength,
@@ -184,50 +250,58 @@ SQLRETURN  SQL_API SQLCloseCursor(SQLHSTMT StatementHandle) {
 // attr2 |     |    |
 // attr3 |     |    |
 //
-SQLRETURN SQL_API SQLColAttribute (SQLHSTMT  StatementHandle, SQLUSMALLINT ColumnNumber, SQLUSMALLINT FieldIdentifier, SQLPOINTER CharacterAttributePtr, SQLSMALLINT BufferLength, SQLSMALLINT *StringLengthPtr, SQLLEN *NumericAttributePtr){
+SQLRETURN SQLColAttribute(
+    SQLHSTMT        StatementHandle,
+    SQLUSMALLINT    ColumnNumber,
+    SQLUSMALLINT    FieldIdentifier,
+    SQLPOINTER      CharacterAttributePtr,
+    SQLSMALLINT     BufferLength,
+    SQLSMALLINT* StringLengthPtr,
+    SQLLEN* NumericAttributePtr) {
 
+    OutputDebugString(L"SQLColAttribute called\n");
 
     CHECK_HANDLE(StatementHandle);
-    SQLINTEGER len= SQL_NTS;
-    STMT *stmt= (STMT *)StatementHandle;
+    SQLINTEGER len = SQL_NTS;
+    STMT* stmt = (STMT*)StatementHandle;
 
-    if(FieldIdentifier == NULL){   // convert the field identifier to a string if not null in case the switch cases below don't work
+    if (FieldIdentifier == NULL) {   // convert the field identifier to a string if not null in case the switch cases below don't work
         printf("No Attribute specified\n");
     }
-    if(stmt->argc <= 0){ // This isn't like main, there should only be columns here and no executable
+    if (stmt->argc <= 0) { // This isn't like main, there should only be columns here and no executable
         printf("No columns in result from database\n");
         return SQL_SUCCESS;
         return SQL_ERROR; // If thats what we want
     }
-    if(ColumnNumber < 0 || ColumnNumber >= stmt->argc){ // Not valid index
+    if (ColumnNumber < 0 || ColumnNumber >= stmt->argc) { // Not valid index
         printf("Not a valid column index\n");
         return SQL_ERROR;
     }
 
-    if(stmt->argv[ColumnNumber] == NULL){ // there is no allocated memory for that column //If an element of a result row is NULL then the corresponding string pointer for the sqlite3_exec() callback is a NULL pointer.
+    if (stmt->argv[ColumnNumber] == NULL) { // there is no allocated memory for that column //If an element of a result row is NULL then the corresponding string pointer for the sqlite3_exec() callback is a NULL pointer.
         printf("Empty result row\n");
         return SQL_SUCCESS;
         return SQL_ERROR; // If thats what we want
     }
 
-    switch(FieldIdentifier)
+    switch (FieldIdentifier)
     {
     case SQL_DESC_TYPE:
-        if(ColumnNumber == 0)
-            *(SQLINTEGER *)NumericAttributePtr = SQL_INTEGER; // Did this because of MYSQL but the windows website says there is more
-        return SQL_SUCCESS;   
+        if (ColumnNumber == 0)
+            *(SQLINTEGER*)NumericAttributePtr = SQL_INTEGER; // Did this because of MYSQL but the windows website says there is more
+        return SQL_SUCCESS;
         break;
-    case SQL_DESC_COUNT: 
-        *(SQLINTEGER *)NumericAttributePtr = stmt->argc;
+    case SQL_DESC_COUNT:
+        *(SQLINTEGER*)NumericAttributePtr = stmt->argc;
         return SQL_SUCCESS;
         break;
     case SQL_DESC_NAME:
-        if(CharacterAttributePtr && BufferLength > 1)  // If memory has been allocated for the results
-            strmake((char *)CharacterAttributePtr, (char *)stmt->colName[ColumnNumber], BufferLength - 1,&len); // use strmake like this whenever moving the data
+        if (CharacterAttributePtr && BufferLength > 1)  // If memory has been allocated for the results
+            strmake((char*)CharacterAttributePtr, (char*)stmt->colName[ColumnNumber], BufferLength - 1, &len); // use strmake like this whenever moving the data
         break;
     }
-    
-    if(len > BufferLength-1) //the length of the value is greater than the buffer size
+
+    if (len > BufferLength - 1) //the length of the value is greater than the buffer size
         return SQL_ERROR;
 
     if (StringLengthPtr) // If memory was allocated for the stringlenghtptr
@@ -236,37 +310,74 @@ SQLRETURN SQL_API SQLColAttribute (SQLHSTMT  StatementHandle, SQLUSMALLINT Colum
     return SQL_SUCCESS;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#else
-SQLRETURN  SQL_API SQLColAttribute(SQLHSTMT StatementHandle,
-    SQLUSMALLINT ColumnNumber, SQLUSMALLINT FieldIdentifier,
-    _Out_writes_bytes_opt_(BufferLength) SQLPOINTER CharacterAttribute, SQLSMALLINT BufferLength,
-    _Out_opt_ SQLSMALLINT* StringLength, _Out_opt_ SQLPOINTER NumericAttribute) {
+
+SQLRETURN  SQL_API SQLDescribeCol(SQLHSTMT StatementHandle,
+    SQLUSMALLINT ColumnNumber, _Out_writes_opt_(BufferLength) SQLCHAR* ColumnName,
+    SQLSMALLINT BufferLength, _Out_opt_ SQLSMALLINT* NameLength,
+    _Out_opt_ SQLSMALLINT* DataType, _Out_opt_ SQLULEN* ColumnSize,
+    _Out_opt_ SQLSMALLINT* DecimalDigits, _Out_opt_ SQLSMALLINT* Nullable) {
+    OutputDebugString(L"SQLDescribeCol called\n");
+
     return SQL_SUCCESS;
 }
-#endif
-#endif
+
+SQLRETURN  SQL_API SQLNumResultCols(SQLHSTMT StatementHandle,
+    _Out_ SQLSMALLINT* ColumnCount) {
+    OutputDebugString(L"SQLNumResultCols called\n");
+
+    return SQL_SUCCESS;
+}
 
 
-SQLRETURN  SQL_API SQLColumns(SQLHSTMT StatementHandle,
+SQLRETURN  SQL_API SQLRowCount(_In_ SQLHSTMT StatementHandle,
+    _Out_ SQLLEN* RowCount) {
+    OutputDebugString(L"SQLRowCount called\n");
+    return SQL_SUCCESS;
+}
+
+SQLRETURN SQL_API SQLColumns(SQLHSTMT StatementHandle,
     _In_reads_opt_(NameLength1) SQLCHAR* CatalogName, SQLSMALLINT NameLength1,
     _In_reads_opt_(NameLength2) SQLCHAR* SchemaName, SQLSMALLINT NameLength2,
     _In_reads_opt_(NameLength3) SQLCHAR* TableName, SQLSMALLINT NameLength3,
     _In_reads_opt_(NameLength4) SQLCHAR* ColumnName, SQLSMALLINT NameLength4) {
+    OutputDebugString(L"SQLColumns called\n");
+
     return SQL_SUCCESS;
 }
 
-#if (ODBCVER >= 0x0380)
-SQLRETURN SQL_API SQLCompleteAsync(SQLSMALLINT    HandleType,
-    SQLHANDLE      Handle,
-    _Out_ RETCODE* AsyncRetCodePtr) {
+SQLRETURN  SQL_API SQLGetTypeInfo(SQLHSTMT StatementHandle,
+    SQLSMALLINT DataType) {
+    OutputDebugString(L"SQLGetTypeInfo called\n");
+
     return SQL_SUCCESS;
 }
-#endif
+
+SQLRETURN  SQL_API SQLStatistics(SQLHSTMT StatementHandle,
+    _In_reads_opt_(NameLength1) SQLCHAR* CatalogName, SQLSMALLINT NameLength1,
+    _In_reads_opt_(NameLength2) SQLCHAR* SchemaName, SQLSMALLINT NameLength2,
+    _In_reads_opt_(NameLength3) SQLCHAR* TableName, SQLSMALLINT NameLength3,
+    SQLUSMALLINT Unique, SQLUSMALLINT Reserved) {
+    OutputDebugString(L"SQLStatistics called\n");
+
+    return SQL_SUCCESS;
+}
+
+SQLRETURN  SQL_API SQLTables(SQLHSTMT StatementHandle,
+    _In_reads_opt_(NameLength1) SQLCHAR* CatalogName, SQLSMALLINT NameLength1,
+    _In_reads_opt_(NameLength2) SQLCHAR* SchemaName, SQLSMALLINT NameLength2,
+    _In_reads_opt_(NameLength3) SQLCHAR* TableName, SQLSMALLINT NameLength3,
+    _In_reads_opt_(NameLength4) SQLCHAR* TableType, SQLSMALLINT NameLength4) {
+    OutputDebugString(L"SQLTables called\n");
+
+    return SQL_SUCCESS;
+}
 
 SQLRETURN  SQL_API SQLConnect(SQLHDBC ConnectionHandle,
     _In_reads_(NameLength1) SQLCHAR* ServerName, SQLSMALLINT NameLength1,
     _In_reads_(NameLength2) SQLCHAR* UserName, SQLSMALLINT NameLength2,
     _In_reads_(NameLength3) SQLCHAR* Authentication, SQLSMALLINT NameLength3) {
+
+    OutputDebugString(L"SQLConnect called\n");
 
     DBC* dbc;
     if (ConnectionHandle == NULL) {
@@ -284,123 +395,162 @@ SQLRETURN  SQL_API SQLConnect(SQLHDBC ConnectionHandle,
     return SQL_SUCCESS;
 }
 
-#if (ODBCVER >= 0x0300)
-SQLRETURN  SQL_API SQLCopyDesc(SQLHDESC SourceDescHandle,
-    SQLHDESC TargetDescHandle) {
+SQLRETURN SQL_API SQLConnectW(SQLHDBC hdbc,
+    _In_reads_(cchDSN) SQLWCHAR* szDSN,
+    SQLSMALLINT         cchDSN,
+    _In_reads_(cchUID) SQLWCHAR* szUID,
+    SQLSMALLINT         cchUID,
+    _In_reads_(cchAuthStr) SQLWCHAR* szAuthStr,
+    SQLSMALLINT         cchAuthStr) {
+    OutputDebugString(L"SQLConnectW called\n");
+
     return SQL_SUCCESS;
+
 }
-#endif
 
 SQLRETURN  SQL_API SQLDataSources(SQLHENV EnvironmentHandle,
     SQLUSMALLINT Direction, _Out_writes_opt_(BufferLength1) SQLCHAR* ServerName,
     SQLSMALLINT BufferLength1, _Out_opt_ SQLSMALLINT* NameLength1Ptr,
     _Out_writes_opt_(BufferLength2) SQLCHAR* Description, SQLSMALLINT BufferLength2,
     _Out_opt_ SQLSMALLINT* NameLength2Ptr) {
-    return SQL_SUCCESS;
-}
 
-SQLRETURN  SQL_API SQLDescribeCol(SQLHSTMT StatementHandle,
-    SQLUSMALLINT ColumnNumber, _Out_writes_opt_(BufferLength) SQLCHAR* ColumnName,
-    SQLSMALLINT BufferLength, _Out_opt_ SQLSMALLINT* NameLength,
-    _Out_opt_ SQLSMALLINT* DataType, _Out_opt_ SQLULEN* ColumnSize,
-    _Out_opt_ SQLSMALLINT* DecimalDigits, _Out_opt_ SQLSMALLINT* Nullable) {
+    OutputDebugString(L"SQLDataSources called\n");
+
     return SQL_SUCCESS;
 }
 
 SQLRETURN  SQL_API SQLDisconnect(SQLHDBC ConnectionHandle) {
+
+    OutputDebugString(L"SQLDisconnect called\n");
+
+    disconnect(ConnectionHandle);
+
     return SQL_SUCCESS;
 }
 
-#if (ODBCVER >= 0x0300)
-SQLRETURN  SQL_API SQLEndTran(SQLSMALLINT HandleType, SQLHANDLE Handle,
-    SQLSMALLINT CompletionType) {
+SQLRETURN SQL_API SQLDriverConnect(
+    SQLHDBC            hdbc,
+    SQLHWND            hwnd,
+    _In_reads_(cchConnStrIn)
+    SQLCHAR* szConnStrIn,
+    SQLSMALLINT        cchConnStrIn,
+    _Out_writes_opt_(cchConnStrOutMax)
+    SQLCHAR* szConnStrOut,
+    SQLSMALLINT        cchConnStrOutMax,
+    _Out_opt_
+    SQLSMALLINT* pcchConnStrOut,
+    SQLUSMALLINT       fDriverCompletion) {
+
+
+    OutputDebugString(L"SQLDriverConnect called\n");
+
+    SQLSMALLINT* tmp = new(SQLSMALLINT);
+    *tmp = 2;
+    pcchConnStrOut = tmp;
+
+    return SQL_SUCCESS;
+
+}
+
+SQLRETURN SQL_API SQLDriverConnectW(SQLHDBC             hdbc,
+    SQLHWND             hwnd,
+    _In_reads_(cchConnStrIn) SQLWCHAR* szConnStrIn,
+    SQLSMALLINT         cchConnStrIn,
+    _Out_writes_opt_(cchConnStrOutMax) SQLWCHAR* szConnStrOut,
+    SQLSMALLINT         cchConnStrOutMax,
+    _Out_opt_ SQLSMALLINT* pcchConnStrOut,
+    SQLUSMALLINT        fDriverCompletion) {
+    OutputDebugString(L"SQLDriverConnectW called\n");
+
+    SQLSMALLINT* tmp = new(SQLSMALLINT);
+    *tmp = 2;
+    pcchConnStrOut = tmp;
+
+
+
+
     return SQL_SUCCESS;
 }
-#endif
 
-SQLRETURN  SQL_API SQLError(SQLHENV EnvironmentHandle,
-    SQLHDBC ConnectionHandle, SQLHSTMT StatementHandle,
-    _Out_writes_(6) SQLCHAR* Sqlstate, _Out_opt_ SQLINTEGER* NativeError,
-    _Out_writes_opt_(BufferLength) SQLCHAR* MessageText, SQLSMALLINT BufferLength,
-    _Out_opt_ SQLSMALLINT* TextLength) {
+
+SQLRETURN SQL_API SQLDrivers(
+    SQLHENV         EnvironmentHandle,
+    SQLUSMALLINT    Direction,
+    SQLCHAR* DriverDescription,
+    SQLSMALLINT     BufferLength1,
+    SQLSMALLINT* DescriptionLengthPtr,
+    SQLCHAR* DriverAttributes,
+    SQLSMALLINT     BufferLength2,
+    SQLSMALLINT* AttributesLengthPtr) {
+
+    OutputDebugString(L"SQLDrivers called\n");
+
     return SQL_SUCCESS;
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
-SQLRETURN SQL_API
-SQLExecDirect(SQLHSTMT stmt, SQLCHAR *query, SQLINTEGER queryLen)
-{
-    SQLRETURN ret;
+/*
+SQLRETURN SQL_API SQLExecDirect(SQLHSTMT    hstmt,
+    _In_reads_opt_(TextLength) SQLWCHAR* szSqlStr,
+    SQLINTEGER  TextLength) {
 
-    CHECK_HANDLE(stmt);
+    OutputDebugString(L"SQLExecDirect called\n");
+
+    
+
+    CHECK_HANDLE(hstmt);
+
     // if ((ret= prepare(stmt, query, query_len))) // will be used after prepare has been written
     //     return ret;
     // ret = execute(stmt, (char *) query);
 
-	// ret = execute(stmt, (char *) query);
-    ret = SQL_SUCCESS;
+    // ret = execute(stmt, (char *) query);
+
+    SQLRETURN ret = SQL_SUCCESS;
+
     return ret;
 }
-	
+*/
 //////////////////////////////////////////////////////////////
 
+SQLRETURN SQL_API SQLExecDirectW(SQLHSTMT    hstmt,
+    _In_reads_opt_(TextLength) SQLWCHAR* szSqlStr,
+    SQLINTEGER  TextLength) {
+    OutputDebugString(L"SQLExecDirectW called\n");
+
+
+    SQLRETURN ret = execute(hstmt, szSqlStr);
+
+
+    return SQL_SUCCESS;
+
+}
+
 SQLRETURN  SQL_API SQLExecute(SQLHSTMT StatementHandle) {
+    OutputDebugString(L"SQLExecute called\n");
+
     return SQL_SUCCESS;
 }
+
+SQLRETURN  SQL_API SQLPrepare(SQLHSTMT StatementHandle,
+    _In_reads_(TextLength) SQLCHAR* StatementText,
+    SQLINTEGER TextLength) {
+    OutputDebugString(L"SQLPrepare called\n");
+
+    return SQL_SUCCESS;
+}
+
 
 SQLRETURN  SQL_API SQLFetch(SQLHSTMT StatementHandle) {
+    OutputDebugString(L"SQLFetch called\n");
+
     return SQL_SUCCESS;
 }
 
-#if (ODBCVER >= 0x0300)
 SQLRETURN  SQL_API SQLFetchScroll(SQLHSTMT StatementHandle,
     SQLSMALLINT FetchOrientation, SQLLEN FetchOffset) {
-    return SQL_SUCCESS;
-}
-#endif
+    OutputDebugString(L"SQLFetchScroll called\n");
 
-SQLRETURN  SQL_API SQLFreeConnect(SQLHDBC ConnectionHandle) {
-    return SQL_SUCCESS;
-}
-
-SQLRETURN  SQL_API SQLFreeEnv(SQLHENV EnvironmentHandle) {
-    return SQL_SUCCESS;
-}
-
-#if (ODBCVER >= 0x0300)
-SQLRETURN  SQL_API SQLFreeHandle(SQLSMALLINT HandleType, SQLHANDLE Handle) {
-    return SQL_SUCCESS;
-}
-#endif
-
-SQLRETURN  SQL_API SQLFreeStmt(SQLHSTMT StatementHandle,
-    SQLUSMALLINT Option) {
-    return SQL_SUCCESS;
-}
-
-#if (ODBCVER >= 0x0300)
-SQLRETURN  SQL_API SQLGetConnectAttr(SQLHDBC ConnectionHandle,
-    SQLINTEGER Attribute, _Out_writes_opt_(_Inexpressible_(BufferLength)) SQLPOINTER Value,
-    SQLINTEGER BufferLength, _Out_opt_ SQLINTEGER* StringLengthPtr) {
-    return SQL_SUCCESS;
-}
-__declspec(deprecated("ODBC API: SQLGetConnectOption is deprecated. Please use SQLGetConnectAttr instead."))
-#endif
-
-SQLRETURN  SQL_API SQLGetConnectOption(SQLHDBC ConnectionHandle,
-    SQLUSMALLINT Option, SQLPOINTER Value) {
-    return SQL_SUCCESS;
-}
-
-SQLRETURN  SQL_API SQLGetCursorName
-(
-    SQLHSTMT StatementHandle,
-    _Out_writes_opt_(BufferLength) SQLCHAR* CursorName,
-    SQLSMALLINT BufferLength,
-    _Out_opt_
-    SQLSMALLINT* NameLengthPtr
-) {
     return SQL_SUCCESS;
 }
 
@@ -408,150 +558,42 @@ SQLRETURN  SQL_API SQLGetData(SQLHSTMT StatementHandle,
     SQLUSMALLINT ColumnNumber, SQLSMALLINT TargetType,
     _Out_writes_opt_(_Inexpressible_(BufferLength)) SQLPOINTER TargetValue, SQLLEN BufferLength,
     _Out_opt_ SQLLEN* StrLen_or_IndPtr) {
+    OutputDebugString(L"SQLGetData called\n");
+
     return SQL_SUCCESS;
 }
 
-#if (ODBCVER >= 0x0300)
-SQLRETURN  SQL_API SQLGetDescField(SQLHDESC DescriptorHandle,
-    SQLSMALLINT RecNumber, SQLSMALLINT FieldIdentifier,
-    _Out_writes_opt_(_Inexpressible_(BufferLength)) SQLPOINTER Value, SQLINTEGER BufferLength,
-    _Out_opt_ SQLINTEGER* StringLength) {
-    return SQL_SUCCESS;
-}
+SQLRETURN  SQL_API SQLGetConnectAttr(SQLHDBC ConnectionHandle,
+    SQLINTEGER Attribute, _Out_writes_opt_(_Inexpressible_(BufferLength)) SQLPOINTER Value,
+    SQLINTEGER BufferLength, _Out_opt_ SQLINTEGER* StringLengthPtr) {
+    OutputDebugString(L"SQLGetConnectAttr called\n");
 
-SQLRETURN  SQL_API SQLGetDescRec(SQLHDESC DescriptorHandle,
-    SQLSMALLINT RecNumber, _Out_writes_opt_(BufferLength) SQLCHAR* Name,
-    SQLSMALLINT BufferLength, _Out_opt_ SQLSMALLINT* StringLengthPtr,
-    _Out_opt_ SQLSMALLINT* TypePtr, _Out_opt_ SQLSMALLINT* SubTypePtr,
-    _Out_opt_ SQLLEN* LengthPtr, _Out_opt_ SQLSMALLINT* PrecisionPtr,
-    _Out_opt_ SQLSMALLINT* ScalePtr, _Out_opt_ SQLSMALLINT* NullablePtr) {
-    return SQL_SUCCESS;
-}
-
-SQLRETURN  SQL_API SQLGetDiagField(SQLSMALLINT HandleType, SQLHANDLE Handle,
-    SQLSMALLINT RecNumber, SQLSMALLINT DiagIdentifier,
-    _Out_writes_opt_(_Inexpressible_(BufferLength)) SQLPOINTER DiagInfo, SQLSMALLINT BufferLength,
-    _Out_opt_ SQLSMALLINT* StringLength) {
-    return SQL_SUCCESS;
-}
-
-SQLRETURN  SQL_API SQLGetDiagRec
-(
-    SQLSMALLINT HandleType,
-    SQLHANDLE Handle,
-    SQLSMALLINT RecNumber,
-    _Out_writes_opt_(6) SQLCHAR* Sqlstate,
-    SQLINTEGER* NativeError,
-    _Out_writes_opt_(BufferLength) SQLCHAR* MessageText,
-    SQLSMALLINT BufferLength,
-    _Out_opt_
-    SQLSMALLINT* TextLength
-) {
     return SQL_SUCCESS;
 }
 
 SQLRETURN  SQL_API SQLGetEnvAttr(SQLHENV EnvironmentHandle,
     SQLINTEGER Attribute, _Out_writes_(_Inexpressible_(BufferLength)) SQLPOINTER Value,
     SQLINTEGER BufferLength, _Out_opt_ SQLINTEGER* StringLength) {
-    return SQL_SUCCESS;
-}
-#endif  /* ODBCVER >= 0x0300 */
+    OutputDebugString(L"SQLGetEnvAttr called\n");
 
-SQLRETURN  SQL_API SQLGetFunctions(SQLHDBC ConnectionHandle,
-    SQLUSMALLINT FunctionId,
-    _Out_writes_opt_(_Inexpressible_("Buffer length pfExists points to depends on fFunction value."))
-    SQLUSMALLINT* Supported) {
     return SQL_SUCCESS;
 }
 
-_Success_(return == SQL_SUCCESS)
-SQLRETURN  SQL_API SQLGetInfo(SQLHDBC ConnectionHandle,
-    SQLUSMALLINT InfoType, _Out_writes_bytes_opt_(BufferLength) SQLPOINTER InfoValue,
-    SQLSMALLINT BufferLength, _Out_opt_ SQLSMALLINT * StringLengthPtr) {
-    return SQL_SUCCESS;
-}
-
-#if (ODBCVER >= 0x0300)
 SQLRETURN  SQL_API SQLGetStmtAttr(SQLHSTMT StatementHandle,
     SQLINTEGER Attribute, _Out_writes_opt_(_Inexpressible_(BufferLength)) SQLPOINTER Value,
-    SQLINTEGER BufferLength, _Out_opt_ SQLINTEGER * StringLength);
-__declspec(deprecated("ODBC API: SQLGetStmtOption is deprecated. Please use SQLGetStmtAttr instead."))
-#endif  /* ODBCVER >= 0x0300 */
+    SQLINTEGER BufferLength, _Out_opt_ SQLINTEGER* StringLength) {
+    OutputDebugString(L"SQLGetStmtAttr called\n");
 
-SQLRETURN  SQL_API SQLGetStmtOption(SQLHSTMT StatementHandle,
-    SQLUSMALLINT Option, SQLPOINTER Value) {
     return SQL_SUCCESS;
 }
 
-SQLRETURN  SQL_API SQLGetTypeInfo(SQLHSTMT StatementHandle,
-    SQLSMALLINT DataType) {
-    return SQL_SUCCESS;
-}
-
-SQLRETURN  SQL_API SQLNumResultCols(SQLHSTMT StatementHandle,
-    _Out_ SQLSMALLINT * ColumnCount) {
-    return SQL_SUCCESS;
-}
-
-SQLRETURN  SQL_API SQLParamData(SQLHSTMT StatementHandle,
-    _Out_opt_ SQLPOINTER * Value) {
-    return SQL_SUCCESS;
-}
-
-SQLRETURN  SQL_API SQLPrepare
-(
-    SQLHSTMT StatementHandle,
-    _In_reads_(TextLength) SQLCHAR * StatementText,
-    SQLINTEGER TextLength
-) {
-    return SQL_SUCCESS;
-}
-
-SQLRETURN  SQL_API SQLPutData(SQLHSTMT StatementHandle,
-    _In_reads_(_Inexpressible_(StrLen_or_Ind)) SQLPOINTER Data, SQLLEN StrLen_or_Ind);
-
-SQLRETURN  SQL_API SQLRowCount(_In_ SQLHSTMT StatementHandle,
-    _Out_ SQLLEN * RowCount) {
-    return SQL_SUCCESS;
-}
-
-#if (ODBCVER >= 0x0300)
 SQLRETURN  SQL_API SQLSetConnectAttr(SQLHDBC ConnectionHandle,
     SQLINTEGER Attribute, _In_reads_bytes_opt_(StringLength) SQLPOINTER Value,
     SQLINTEGER StringLength) {
+    OutputDebugString(L"SQLSetConnectAttr called\n");
+
     return SQL_SUCCESS;
 }
-__declspec(deprecated("ODBC API: SQLSetConnectOption is deprecated. Please use SQLSetConnectAttr instead."))
-#endif /* ODBCVER >= 0x0300 */
-
-SQLRETURN  SQL_API SQLSetConnectOption(SQLHDBC ConnectionHandle,
-    SQLUSMALLINT Option, SQLULEN Value) {
-    return SQL_SUCCESS;
-}
-
-SQLRETURN  SQL_API SQLSetCursorName
-(
-    SQLHSTMT StatementHandle,
-    _In_reads_(NameLength) SQLCHAR * CursorName,
-    SQLSMALLINT NameLength
-) {
-    return SQL_SUCCESS;
-}
-
-#if (ODBCVER >= 0x0300)
-SQLRETURN  SQL_API SQLSetDescField(SQLHDESC DescriptorHandle,
-    SQLSMALLINT RecNumber, SQLSMALLINT FieldIdentifier,
-    _In_reads_(_Inexpressible_(BufferLength)) SQLPOINTER Value, SQLINTEGER BufferLength);
-
-SQLRETURN  SQL_API SQLSetDescRec(SQLHDESC DescriptorHandle,
-    SQLSMALLINT RecNumber, SQLSMALLINT Type,
-    SQLSMALLINT SubType, SQLLEN Length,
-    SQLSMALLINT Precision, SQLSMALLINT Scale,
-    _Inout_updates_bytes_opt_(Length) SQLPOINTER Data, _Inout_opt_ SQLLEN * StringLength,
-    _Inout_opt_ SQLLEN * Indicator) {
-    return SQL_SUCCESS;
-}
-
 
 /*
 in MySQL it is in options.cc
@@ -559,6 +601,12 @@ in MySQL it is in options.cc
 SQLRETURN  SQL_API SQLSetEnvAttr(SQLHENV EnvironmentHandle,
     SQLINTEGER Attribute, _In_reads_bytes_opt_(StringLength) SQLPOINTER Value,
     SQLINTEGER StringLength) {
+
+    OutputDebugString(L"SQLSetEnvAttr called\n");
+
+    //Something in here is broken causing the whole program to crash, skipping for now
+
+    /*
 
     SQLRETURN error = SQL_ERROR;
     ENV* e;
@@ -586,54 +634,237 @@ SQLRETURN  SQL_API SQLSetEnvAttr(SQLHENV EnvironmentHandle,
     }
 
     return error;
-}
-#endif /* ODBCVER >= 0x0300 */
-
-__declspec(deprecated("ODBC API: SQLSetParam is deprecated. Please use SQLBindParameter instead."))
-SQLRETURN  SQL_API SQLSetParam(SQLHSTMT StatementHandle,
-    SQLUSMALLINT ParameterNumber, SQLSMALLINT ValueType,
-    SQLSMALLINT ParameterType, SQLULEN LengthPrecision,
-    SQLSMALLINT ParameterScale, _In_reads_(_Inexpressible_(*StrLen_or_Ind)) SQLPOINTER ParameterValue,
-    _Inout_ SQLLEN * StrLen_or_Ind) {
+    */
     return SQL_SUCCESS;
 }
 
-#if (ODBCVER >= 0x0300)
 SQLRETURN  SQL_API SQLSetStmtAttr(SQLHSTMT StatementHandle,
     SQLINTEGER Attribute, _In_reads_(_Inexpressible_(StringLength)) SQLPOINTER Value,
     SQLINTEGER StringLength) {
+    OutputDebugString(L"SQLSetStmtAttr called\n");
+
     return SQL_SUCCESS;
 }
-__declspec(deprecated("ODBC API: SQLSetStmtOption is deprecated. Please use SQLSetStmtAttr instead."))
-#endif
 
-SQLRETURN  SQL_API SQLSetStmtOption(SQLHSTMT StatementHandle,
-    SQLUSMALLINT Option, SQLULEN Value) {
+SQLRETURN  SQL_API SQLCopyDesc(SQLHDESC SourceDescHandle,
+    SQLHDESC TargetDescHandle) {
+    OutputDebugString(L"SQLCopyDesc called\n");
+
+    return SQL_SUCCESS;
+}
+
+SQLRETURN  SQL_API SQLGetDescField(SQLHDESC DescriptorHandle,
+    SQLSMALLINT RecNumber, SQLSMALLINT FieldIdentifier,
+    _Out_writes_opt_(_Inexpressible_(BufferLength)) SQLPOINTER Value, SQLINTEGER BufferLength,
+    _Out_opt_ SQLINTEGER* StringLength) {
+    OutputDebugString(L"SQLGetDescField called\n");
+
+    return SQL_SUCCESS;
+}
+
+SQLRETURN  SQL_API SQLGetDescRec(SQLHDESC DescriptorHandle,
+    SQLSMALLINT RecNumber, _Out_writes_opt_(BufferLength) SQLCHAR* Name,
+    SQLSMALLINT BufferLength, _Out_opt_ SQLSMALLINT* StringLengthPtr,
+    _Out_opt_ SQLSMALLINT* TypePtr, _Out_opt_ SQLSMALLINT* SubTypePtr,
+    _Out_opt_ SQLLEN* LengthPtr, _Out_opt_ SQLSMALLINT* PrecisionPtr,
+    _Out_opt_ SQLSMALLINT* ScalePtr, _Out_opt_ SQLSMALLINT* NullablePtr) {
+    OutputDebugString(L"SQLGetDescRec called\n");
+
+    return SQL_SUCCESS;
+}
+
+SQLRETURN  SQL_API SQLSetDescField(SQLHDESC DescriptorHandle,
+    SQLSMALLINT RecNumber, SQLSMALLINT FieldIdentifier,
+    _In_reads_(_Inexpressible_(BufferLength)) SQLPOINTER Value, SQLINTEGER BufferLength) {
+    OutputDebugString(L"SQLSetDescField called\n");
+
+    return SQL_SUCCESS;
+}
+
+SQLRETURN  SQL_API SQLSetDescRec(SQLHDESC DescriptorHandle,
+    SQLSMALLINT RecNumber, SQLSMALLINT Type,
+    SQLSMALLINT SubType, SQLLEN Length,
+    SQLSMALLINT Precision, SQLSMALLINT Scale,
+    _Inout_updates_bytes_opt_(Length) SQLPOINTER Data, _Inout_opt_ SQLLEN* StringLength,
+    _Inout_opt_ SQLLEN* Indicator) {
+    OutputDebugString(L"SQLSetDescRec called\n");
+
+    return SQL_SUCCESS;
+}
+
+SQLRETURN  SQL_API SQLGetDiagField(SQLSMALLINT HandleType, SQLHANDLE Handle,
+    SQLSMALLINT RecNumber, SQLSMALLINT DiagIdentifier,
+    _Out_writes_opt_(_Inexpressible_(BufferLength)) SQLPOINTER DiagInfo, SQLSMALLINT BufferLength,
+    _Out_opt_ SQLSMALLINT* StringLength) {
+    OutputDebugString(L"SQLGetDiagField called\n");
+
+    return SQL_SUCCESS;
+}
+
+SQLRETURN  SQL_API SQLGetDiagRec(SQLSMALLINT HandleType,
+    SQLHANDLE Handle,
+    SQLSMALLINT RecNumber,
+    _Out_writes_opt_(6) SQLCHAR* Sqlstate,
+    SQLINTEGER* NativeError,
+    _Out_writes_opt_(BufferLength) SQLCHAR* MessageText,
+    SQLSMALLINT BufferLength,
+    _Out_opt_
+    SQLSMALLINT* TextLength) {
+    OutputDebugString(L"SQLGetDiagRec called\n");
+
+    return SQL_SUCCESS;
+}
+
+//Note this id undefined in the def so this does nothing.
+SQLRETURN  SQL_API SQLGetFunctions(SQLHDBC ConnectionHandle,
+    SQLUSMALLINT FunctionId,
+    _Out_writes_opt_(_Inexpressible_("Buffer length pfExists points to depends on fFunction value."))
+    SQLUSMALLINT* Supported) {
+    OutputDebugString(L"SQLGetFunctions called\n");
+
+    SQLUSMALLINT* tmp = new(SQLUSMALLINT);
+    *tmp = 0;
+    Supported = tmp;
+
+    return SQL_SUCCESS;
+}
+
+SQLRETURN  SQL_API SQLGetInfo(SQLHDBC ConnectionHandle,
+    SQLUSMALLINT InfoType, _Out_writes_bytes_opt_(BufferLength) SQLPOINTER InfoValue,
+    SQLSMALLINT BufferLength, _Out_opt_ SQLSMALLINT* StringLengthPtr) {
+    OutputDebugString(L"SQLGetInfo called\n");
+
+    return SQL_SUCCESS;
+}
+
+SQLRETURN SQLNativeSql(SQLHDBC        ConnectionHandle,
+    SQLCHAR* InStatementText,
+    SQLINTEGER     TextLength1,
+    SQLCHAR* OutStatementText,
+    SQLINTEGER     BufferLength,
+    SQLINTEGER* TextLength2Ptr) {
+    OutputDebugString(L"SQLNativeSql called\n");
+
+    return SQL_SUCCESS;
+
+}
+
+SQLRETURN  SQL_API SQLEndTran(SQLSMALLINT HandleType, SQLHANDLE Handle,
+    SQLSMALLINT CompletionType) {
+    OutputDebugString(L"SQLEndTran called\n");
+
+    return SQL_SUCCESS;
+}
+
+SQLRETURN SQL_API SQLCancel(SQLHSTMT StatementHandle) {
+    OutputDebugString(L"SQLCancel called\n");
+
     return SQL_SUCCESS;
 }
 
 SQLRETURN  SQL_API SQLSpecialColumns(SQLHSTMT StatementHandle,
     SQLUSMALLINT IdentifierType,
-    _In_reads_opt_(NameLength1) SQLCHAR * CatalogName, SQLSMALLINT NameLength1,
-    _In_reads_opt_(NameLength2) SQLCHAR * SchemaName, SQLSMALLINT NameLength2,
-    _In_reads_opt_(NameLength3) SQLCHAR * TableName, SQLSMALLINT NameLength3,
+    _In_reads_opt_(NameLength1) SQLCHAR* CatalogName, SQLSMALLINT NameLength1,
+    _In_reads_opt_(NameLength2) SQLCHAR* SchemaName, SQLSMALLINT NameLength2,
+    _In_reads_opt_(NameLength3) SQLCHAR* TableName, SQLSMALLINT NameLength3,
     SQLUSMALLINT Scope, SQLUSMALLINT Nullable) {
+    OutputDebugString(L"SQLSpecialColumns called\n");
+
     return SQL_SUCCESS;
 }
 
-SQLRETURN  SQL_API SQLStatistics(SQLHSTMT StatementHandle,
-    _In_reads_opt_(NameLength1) SQLCHAR * CatalogName, SQLSMALLINT NameLength1,
-    _In_reads_opt_(NameLength2) SQLCHAR * SchemaName, SQLSMALLINT NameLength2,
-    _In_reads_opt_(NameLength3) SQLCHAR * TableName, SQLSMALLINT NameLength3,
-    SQLUSMALLINT Unique, SQLUSMALLINT Reserved) {
+
+BOOL SQL_API ConfigDriver(
+    HWND    hwndParent,
+    WORD    fRequest,
+    LPCSTR  lpszDriver,
+    LPCSTR  lpszArgs,
+    LPSTR   lpszMsg,
+    WORD    cbMsgMax,
+    WORD* pcbMsgOut) {
+
+    OutputDebugString(L"ConfigDriver called\n");
+
+
+    return TRUE;
+}
+
+BOOL SQL_API ConfigDSN(
+    HWND     hwndParent,
+    WORD     fRequest,
+    LPCSTR   lpszDriver,
+    LPCSTR   lpszAttributes) {
+    OutputDebugString(L"ConfigDSN called\n");
+
+    return TRUE;
+
+}
+
+BOOL SQL_API ConfigTranslator(
+    HWND     hwndParent,
+    DWORD* pvOption) {
+
+    OutputDebugString(L"ConfigTranslator called\n");
+
+
+    return TRUE;
+
+}
+
+
+//These functions should be called from inside the driver, not from the application using the driver.
+SQLRETURN  SQL_API SQLFreeConnect(SQLHDBC ConnectionHandle) {
     return SQL_SUCCESS;
 }
 
-SQLRETURN  SQL_API SQLTables(SQLHSTMT StatementHandle,
-    _In_reads_opt_(NameLength1) SQLCHAR * CatalogName, SQLSMALLINT NameLength1,
-    _In_reads_opt_(NameLength2) SQLCHAR * SchemaName, SQLSMALLINT NameLength2,
-    _In_reads_opt_(NameLength3) SQLCHAR * TableName, SQLSMALLINT NameLength3,
-    _In_reads_opt_(NameLength4) SQLCHAR * TableType, SQLSMALLINT NameLength4) {
+SQLRETURN  SQL_API SQLFreeEnv(SQLHENV EnvironmentHandle) {
+    return SQL_SUCCESS;
+}
+
+
+//SQLGetFunctions is currently unused. It breaks stuff
+/*
+SQLRETURN  SQL_API SQLGetFunctions(SQLHDBC ConnectionHandle,
+    SQLUSMALLINT FunctionId,
+    _Out_writes_opt_(_Inexpressible_("Buffer length pfExists points to depends on fFunction value."))
+    SQLUSMALLINT* Supported) {
+    return SQL_SUCCESS;
+}
+*/
+
+
+/* Unused functions in core ODBC
+* 
+#if (ODBCVER >= 0x0380)
+SQLRETURN  SQL_API SQLCancelHandle(SQLSMALLINT HandleType, SQLHANDLE InputHandle) {
+    return SQL_SUCCESS;
+}
+#endif // ODBCVER >= 0x038
+
+
+#if (ODBCVER >= 0x0380)
+SQLRETURN SQL_API SQLCompleteAsync(SQLSMALLINT    HandleType,
+    SQLHANDLE      Handle,
+    _Out_ RETCODE* AsyncRetCodePtr) {
+    return SQL_SUCCESS;
+}
+#endif
+
+SQLRETURN  SQL_API SQLError(SQLHENV EnvironmentHandle,
+    SQLHDBC ConnectionHandle, SQLHSTMT StatementHandle,
+    _Out_writes_(6) SQLCHAR* Sqlstate, _Out_opt_ SQLINTEGER* NativeError,
+    _Out_writes_opt_(BufferLength) SQLCHAR* MessageText, SQLSMALLINT BufferLength,
+    _Out_opt_ SQLSMALLINT* TextLength) {
+    return SQL_SUCCESS;
+}
+
+SQLRETURN  SQL_API SQLSetConnectOption(SQLHDBC ConnectionHandle,
+    SQLUSMALLINT Option, SQLULEN Value) {
+    return SQL_SUCCESS;
+}
+
+SQLRETURN  SQL_API SQLSetStmtOption(SQLHSTMT StatementHandle,
+    SQLUSMALLINT Option, SQLULEN Value) {
     return SQL_SUCCESS;
 }
 
@@ -641,3 +872,4 @@ SQLRETURN  SQL_API SQLTransact(SQLHENV EnvironmentHandle,
     SQLHDBC ConnectionHandle, SQLUSMALLINT CompletionType) {
     return SQL_SUCCESS;
 }
+*/

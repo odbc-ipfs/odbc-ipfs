@@ -3,7 +3,7 @@
 
 Open Database Connectivity (ODBC) driver for IPFS
 
-This driver uses libp2p's pubsub to send databse queries. IPFS nodes then parse the request and return a response and synchronize among themselves.
+This driver uses libp2p's pubsub to send SQL database queries. IPFS nodes then parse the request and return a response and synchronize among themselves.
 
 # WARNING: All database transactions are currently public using libp2p pubsub. NOTHING is encrypted yet.
 

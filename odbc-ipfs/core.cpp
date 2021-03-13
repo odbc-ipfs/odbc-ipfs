@@ -165,6 +165,9 @@ SQLRETURN SQL_API SQLBindCol(SQLHSTMT StatementHandle,
 
     TargetValue = (SQLPOINTER) sqlint;
 
+	CHECK_HANDLE(StatementHandle);
+	
+
     return SQL_SUCCESS;
 }
 
@@ -544,6 +547,8 @@ SQLRETURN  SQL_API SQLPrepare(SQLHSTMT StatementHandle,
 SQLRETURN  SQL_API SQLFetch(SQLHSTMT StatementHandle) {
     OutputDebugString(L"SQLFetch called\n");
 
+	CHECK_HANDLE(StatementHandle);
+	
     return SQL_SUCCESS;
 }
 

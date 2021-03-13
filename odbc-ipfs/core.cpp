@@ -631,6 +631,15 @@ SQLRETURN  SQL_API SQLSetEnvAttr(SQLHENV EnvironmentHandle,
             error = SQL_SUCCESS;
         }
         break;
+    case SQL_ATTR_CONNECTION_POOLING:
+        error = SQL_SUCCESS;
+        break;
+    case SQL_ATTR_CP_MATCH:
+        error = SQL_SUCCESS;
+        break;
+    case SQL_ATTR_OUTPUT_NTS:
+        error = SQL_SUCCESS;
+        break;
     }
 
     return error;

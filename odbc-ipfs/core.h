@@ -14,6 +14,16 @@
 #include <Msdasql.h>
 #include <Msdadc.h>
 
+
+
+typedef struct {
+	SQLSMALLINT type;	/**< ODBC type */
+	SQLINTEGER BufferLength;	/**< Max. size of value buffer */
+	SQLLEN* StrLen_or_Ind;	/**< Value return, actual size of value buffer */
+	SQLPOINTER TargetValueptr;	/**< Value buffer */
+	int index;		/**< Index of column in result */
+	int offs;		/**< Byte offset for SQLGetData() */ // Not sure we need this
+} BINDCOL;
 /*Driver internal structure for environment (HENV).
 
 https://docs.microsoft.com/en-us/sql/odbc/reference/develop-app/environment-handles?view=sql-server-ver15
@@ -75,6 +85,8 @@ typedef struct {
 	int argc; //the number of columns in the result
 	char** argv; //an array of pointers to strings obtained
 	char** colName; // an array of pointers to strings where each entry represents the name of corresponding result column as obtained
+	BINDCOL* bindcols;		/**< Array of bound columns */
+	int nbindcols;		/**< Number of entries in bindcols */
 } STMT;
 
 

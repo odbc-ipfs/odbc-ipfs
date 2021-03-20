@@ -153,6 +153,57 @@ SQLRETURN  SQL_API SQLFreeStmt(SQLHSTMT StatementHandle,
     return SQL_SUCCESS;
 }
 
+static void
+unbindcols(STMT* s)
+{
+	int i;
+
+	for (i = 0; s->bindcols && i < s->nbindcols; i++) {
+		s->bindcols[i].type = SQL_UNKNOWN_TYPE;
+		s->bindcols[i].BufferLength = 0;
+		s->bindcols[i].StrLen_or_Ind = NULL;
+		s->bindcols[i].TargetValueptr = NULL;
+		s->bindcols[i].index = i;
+		s->bindcols[i].offs = 0;
+	}
+}
+
+static SQLRETURN
+mkbindcols(STMT* s, int ncols)
+{
+	if (s->bindcols) {
+		if (s->nbindcols < ncols) {
+			int i;
+			BINDCOL* bindcols = (BINDCOL*)realloc(s->bindcols, ncols * sizeof(BINDCOL));
+
+			if (!bindcols) {
+				OutputDebugString(L"SQLBINDCOL out of memory\n");
+				return SQL_ERROR;
+			}
+			for (i = s->nbindcols; i < ncols; i++) {
+				bindcols[i].type = SQL_UNKNOWN_TYPE;
+				bindcols[i].BufferLength = 0;
+				bindcols[i].StrLen_or_Ind = NULL;
+				bindcols[i].TargetValueptr = NULL;
+				bindcols[i].index = i;
+				bindcols[i].offs = 0;
+			}
+			s->bindcols = bindcols;
+			s->nbindcols = ncols;
+		}
+	}
+	else if (ncols > 0) {
+		s->bindcols = (BINDCOL*)malloc(ncols * sizeof(BINDCOL));
+		if (!s->bindcols) {
+			OutputDebugString(L"SQLBINDCOL out of memory\n");
+			return SQL_ERROR;
+		}
+		s->nbindcols = ncols;
+		unbindcols(s);
+	}
+	return SQL_SUCCESS;
+}
+
 SQLRETURN SQL_API SQLBindCol(SQLHSTMT StatementHandle,
     SQLUSMALLINT ColumnNumber, SQLSMALLINT TargetType,
     _Inout_updates_opt_(_Inexpressible_(BufferLength)) SQLPOINTER TargetValue,
@@ -166,6 +217,83 @@ SQLRETURN SQL_API SQLBindCol(SQLHSTMT StatementHandle,
     TargetValue = (SQLPOINTER) sqlint;
 
 	CHECK_HANDLE(StatementHandle);
+
+	STMT* s = (STMT*)StatementHandle;
+	int sz = 0;
+
+	if (mkbindcols(s, ColumnNumber) != SQL_SUCCESS) {
+		return SQL_ERROR;
+	}
+
+	switch (TargetType) {
+	case SQL_C_LONG:
+	case SQL_C_ULONG:
+	case SQL_C_SLONG:
+		sz = sizeof(SQLINTEGER);
+		break;
+	case SQL_C_TINYINT:
+	case SQL_C_UTINYINT:
+	case SQL_C_STINYINT:
+		sz = sizeof(SQLCHAR);
+		break;
+	case SQL_C_SHORT:
+	case SQL_C_USHORT:
+	case SQL_C_SSHORT:
+		sz = sizeof(SQLSMALLINT);
+		break;
+	case SQL_C_FLOAT:
+		sz = sizeof(SQLFLOAT);
+		break;
+	case SQL_C_DOUBLE:
+		sz = sizeof(SQLDOUBLE);
+		break;
+	case SQL_C_WCHAR:
+		break;
+	case SQL_C_CHAR:
+		break;
+	case SQL_C_BIT:
+		sz = sizeof(SQLCHAR);
+		break;
+	case SQL_C_BINARY:
+		break;
+	case SQL_C_SBIGINT:
+	case SQL_C_UBIGINT:
+		sz = sizeof(SQLBIGINT);
+		break;
+	default:
+		if (TargetValue == NULL) {
+			/* fall through, unbinding column */
+			break;
+		}
+		printf("SQLBindCOL Invalid type %d HY003\n",TargetType);
+
+
+		return SQL_ERROR;
+	}
+	if (TargetValue == NULL) {
+		/* unbind column */
+		s->bindcols[ColumnNumber].type = SQL_UNKNOWN_TYPE;
+		s->bindcols[ColumnNumber].BufferLength = 0;
+		s->bindcols[ColumnNumber].StrLen_or_Ind = NULL;
+		s->bindcols[ColumnNumber].TargetValueptr = NULL;
+		s->bindcols[ColumnNumber].offs = 0;
+	}
+	else {
+		if (sz == 0 && BufferLength< 0) {
+			printf("SQLBindCOL Invalid length HY090\n");
+			return SQL_ERROR;
+		}
+		s->bindcols[ColumnNumber].type = TargetType;
+		s->bindcols[ColumnNumber].BufferLength = (sz == 0) ? BufferLength : sz;
+		s->bindcols[ColumnNumber].StrLen_or_Ind = StrLen_or_Ind;
+		s->bindcols[ColumnNumber].TargetValueptr = TargetValue;
+		s->bindcols[ColumnNumber].offs = 0;
+		if (StrLen_or_Ind) {
+			*StrLen_or_Ind = 0;
+		}
+	}
+	return SQL_SUCCESS;
+
 	
 
     return SQL_SUCCESS;
@@ -268,8 +396,9 @@ SQLRETURN SQLColAttribute(
     SQLINTEGER len = SQL_NTS;
     STMT* stmt = (STMT*)StatementHandle;
 
-    if (FieldIdentifier == NULL) {   // convert the field identifier to a string if not null in case the switch cases below don't work
+    if (FieldIdentifier == NULL) {   
         printf("No Attribute specified\n");
+		return SQL_ERROR;
     }
     if (stmt->argc <= 0) { // This isn't like main, there should only be columns here and no executable
         printf("No columns in result from database\n");

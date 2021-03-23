@@ -5,11 +5,13 @@
 #include <windows.h>
 #include <Odbcinst.h>
 
-
 int main()
 {
-    LPCWSTR lpszDriver = L"ODBC IPFS\0Driver=odbc-ipfs.DLL\0\0";
-    LPCWSTR lpszPathIn = L"D:/ODBCIPFSFOLDER"; //i tried \ but it caused a warning
+    TCHAR NPath[MAX_PATH];
+    GetCurrentDirectory(MAX_PATH, NPath);
+
+    LPCWSTR lpszDriver = L"ODBC IPFS\0Driver=odbc-ipfs.dll\0\0";
+    LPCWSTR lpszPathIn = NPath;
     LPWSTR lpszPathOut = new TCHAR[100];
     WORD cbPathOutMax = 100;
     WORD* pcbPathOut = NULL;

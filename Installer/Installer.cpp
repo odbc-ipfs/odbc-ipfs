@@ -12,7 +12,7 @@ int main()
 
     LPCWSTR lpszDriver = L"ODBC IPFS\0Driver=odbc-ipfs.dll\0\0";
     LPCWSTR lpszPathIn = NPath;
-    LPWSTR lpszPathOut = new TCHAR[100];
+    LPWSTR lpszPathOut = new TCHAR[MAX_PATH + 1];
     WORD cbPathOutMax = 100;
     WORD* pcbPathOut = NULL;
     WORD fRequest = ODBC_INSTALL_COMPLETE;

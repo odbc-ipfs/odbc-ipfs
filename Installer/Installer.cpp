@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <Odbcinst.h>
 
+using namespace std;
 int main()
 {
     TCHAR NPath[MAX_PATH];
@@ -16,8 +17,11 @@ int main()
     WORD cbPathOutMax = 100;
     WORD* pcbPathOut = NULL;
     WORD fRequest = ODBC_INSTALL_COMPLETE;
-    LPDWORD lpdwUsageCount = 0;
-    SQLInstallDriverEx(lpszDriver, lpszPathIn, lpszPathOut, cbPathOutMax, pcbPathOut, fRequest, lpdwUsageCount);
+    DWORD lpdwUsageCount = -1;
+    if (SQLInstallDriverEx(lpszDriver, lpszPathIn, lpszPathOut, cbPathOutMax, pcbPathOut, fRequest, &lpdwUsageCount) == FALSE) {
+        cout << "Error" << endl;
+        cin.get();
+    }
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

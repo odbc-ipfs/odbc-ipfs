@@ -22,25 +22,13 @@ This driver uses libp2p's pubsub to send SQL queries. IPFS nodes then parse the 
 
 ### Installing the driver in Windows Registry
 
-1. Open Windows Registry Editor
+1. Open a Command Prompt of Windows Powershell as Administrator
+2. Run Installer.exe
 
-2. Go to "Computer\HKEY_LOCAL_MACHINE\SOFTWARE\ODBC\ODBCINST.INI\ODBC Drivers"
-     - Add new "String Value" and set the name to "odbc-ipfs" (name is not important, it just must be consistent)
+### Uninstalling the driver in Windows Registry
 
-3. Go to "Computer\HKEY_LOCAL_MACHINE\SOFTWARE\ODBC\ODBCINST.INI"
-     - Add new "Key" and set the name to "odbc-ipfs"
-
-4. Go to "Computer\HKEY_LOCAL_MACHINE\SOFTWARE\ODBC\ODBCINST.INI\odbc-ipfs"
-     - Add new "String Value" and set the name to "Driver"
-     - Right click "Driver", click "Modify..." and set "Value data:" equal to the .dll path (including the odbc-ipfs.dll, not just the folder)
-
-
-     - Add new "String Value" and set the name to "Setup"
-     - Right click "Setup", click "Modify..." and set "Value data:" equal to the .dll path (including the odbc-ipfs.dll, not just the folder)
-
-
-     - Add new "DWORD" and set the name to "UsageCount"
-     - Right click "UsageCount", click "Modify..." and set "Value data:" equal 1 (Base: hexadecimal)
+1. Open a Command Prompt of Windows Powershell as Administrator
+2. Run Uninstaller.exe
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fodbc-ipfs%2Fodbc-ipfs.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fodbc-ipfs%2Fodbc-ipfs?ref=badge_large)

@@ -4,14 +4,9 @@
 
 Open Database Connectivity (ODBC) driver for IPFS
 
-## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fodbc-ipfs%2Fodbc-ipfs.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fodbc-ipfs%2Fodbc-ipfs?ref=badge_large)
-=======
 This driver uses libp2p's pubsub to send SQL queries. IPFS nodes then parse the request and return a response and synchronize among themselves.
 
 # WARNING: All database transactions are currently public using libp2p pubsub. NOTHING is encrypted yet.
-
-### Note: There is no built-in installer at the moment. You must manually edit the registry and create a .dsn file for now.
 
 ### Creating File DSN File
 1. Create new file named "odbc-ipfs.dsn"
@@ -26,16 +21,15 @@ This driver uses libp2p's pubsub to send SQL queries. IPFS nodes then parse the 
 
 ### Installing the driver in Windows Registry
 
-1. Open a Command Prompt of Windows Powershell as Administrator
-2. Run Installer.exe
+1. Run Installer.exe as Administrator
 
 ### Uninstalling the driver in Windows Registry
 
-1. Open a Command Prompt of Windows Powershell as Administrator
-2. Run Uninstaller.exe
+1. Run Uninstaller.exe as Administrator
+
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fodbc-ipfs%2Fodbc-ipfs.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fodbc-ipfs%2Fodbc-ipfs?ref=badge_large)
-
+=======
 
 

@@ -1,6 +1,6 @@
 #pragma once
 #include "core.h"
-#include "sqlite64/sqlite3.h"
+//#include "sqlite64/sqlite3.h"
 #include <iostream>
 
 SQLRETURN SQL_API connect(SQLHENV EnvironmentHandle, SQLHDBC* ConnectionHandle);

@@ -604,10 +604,6 @@ SQLRETURN  SQL_API SQLSetEnvAttr(SQLHENV EnvironmentHandle,
 
     OutputDebugString(L"SQLSetEnvAttr called\n");
 
-    //Something in here is broken causing the whole program to crash, skipping for now
-
-    /*
-
     SQLRETURN error = SQL_ERROR;
     ENV* e;
 
@@ -631,11 +627,19 @@ SQLRETURN  SQL_API SQLSetEnvAttr(SQLHENV EnvironmentHandle,
             error = SQL_SUCCESS;
         }
         break;
+    case SQL_ATTR_CONNECTION_POOLING:
+        error = SQL_SUCCESS;
+        break;
+    case SQL_ATTR_CP_MATCH:
+        error = SQL_SUCCESS;
+        break;
+    case SQL_ATTR_OUTPUT_NTS:
+        error = SQL_SUCCESS;
+        break;
     }
 
     return error;
-    */
-    return SQL_SUCCESS;
+
 }
 
 SQLRETURN  SQL_API SQLSetStmtAttr(SQLHSTMT StatementHandle,

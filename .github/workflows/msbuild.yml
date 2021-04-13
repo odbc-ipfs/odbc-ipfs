@@ -37,9 +37,9 @@ jobs:
     #- name: Run Tests
     #  run: ${{env.SOLUTION_FILE_PATH}}}/x64/Release/odbc-ipfs-test.exe --gtest_output="xml:report.xml"
   
-    - name: Run VSTest	   
-      working-directory: ${{env.SOLUTION_FILE_PATH}}
-      run: vstest.console.exe /Platform:x64 /TestAdapterPath:${{env.SOLUTION_FILE_PATH}}/x64/Release /EnableCodeCoverage ${{env.SOLUTION_FILE_PATH}}/x64/Release/odbc-ipfs-unit-test.dll
+    #- name: Run VSTest	   
+    #  working-directory: ${{env.SOLUTION_FILE_PATH}}
+    #  run: vstest.console.exe /Platform:x64 /TestAdapterPath:${{env.SOLUTION_FILE_PATH}}/x64/Release /EnableCodeCoverage ${{env.SOLUTION_FILE_PATH}}/x64/Release/odbc-ipfs-unit-test.dll
   
     - name: 'Upload Artifact'
       uses: actions/upload-artifact@v2

@@ -5,14 +5,15 @@ import (
 	"encoding/binary"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
-
 	shell "github.com/ipfs/go-ipfs-api"
+	_ "github.com/mattn/go-sqlite3"
 )
 
+//
 //ipfs daemon --enable-pubsub-experiment
 
 //https://github.com/mattn/go-sqlite3
@@ -46,6 +47,7 @@ func main() {
 }
 
 func pubsubpub() {
+
 	sh := shell.NewShell("localhost:5001")
 
 	cid, err := sh.Add(strings.NewReader("Hello World??!!"))
@@ -109,18 +111,62 @@ func waitForMessage(pubsub *shell.PubSubSubscription) {
 			fmt.Println("Error: db == nil")
 			return
 		}
-		stmt, err := DB.Prepare(strData)
 
+		res, err := DB.Query(strData)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
-		stmt.Exec()
+		cols, err := res.Columns()
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
+		fmt.Println("Columns")
+		for _, v := range cols {
+			fmt.Println(v)
+		}
+		fmt.Println("End columns")
+
+		defer res.Close()
+		for res.Next() {
+			colTypes, err := res.ColumnTypes()
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			for _, colType := range colTypes {
+				fmt.Println("Name: " + colType.Name())
+				fmt.Print("Length: ")
+				fmt.Println(colType.Length())
+				fmt.Println("DBTypeName: " + colType.DatabaseTypeName())
+				//colType.ScanType().
+				fmt.Println("ScanType: " + colType.ScanType().Name())
+				isInt := colType.ScanType().AssignableTo(reflect.TypeOf(int64(0)))
+				isStr := colType.ScanType().AssignableTo(reflect.TypeOf(""))
+
+				fmt.Println("isInt: %B isStr: %B", isInt, isStr)
+
+			}
+
+		}
+
+		/*
+			stmt, err := DB.Prepare(strData)
+
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			res, err := stmt.Exec()
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+		*/
 
 		fmt.Println("Query Executed")
 

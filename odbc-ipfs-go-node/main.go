@@ -48,13 +48,16 @@ func main() {
 
 func pubsubpub() {
 
-	sh := shell.NewShell("localhost:5001")
+	sh := shell.NewShell("ipfs:5001")
 
 	cid, err := sh.Add(strings.NewReader("Hello World??!!"))
 
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s", err)
-		os.Exit(1)
+	for err != nil {
+		//fmt.Fprintf(os.Stderr, "error: %s", err)
+		fmt.Println("Failed to connect to api, retrying")
+		cid, err = sh.Add(strings.NewReader("Hello World??!!"))
+
+		time.Sleep(5 * time.Second)
 	}
 
 	fmt.Println("Added: " + cid)

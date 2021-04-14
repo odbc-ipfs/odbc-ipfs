@@ -33,7 +33,14 @@ jobs:
 
     - name: Add VSTest to PATH	   
       uses: darenm/Setup-VSTest@v1
-      
+    
+    - name: Generate JSON SBOM
+      uses: CycloneDX/gh-dotnet-generate-sbom@master
+      with:
+        path: ./odbc-ipfs.sln
+        json: true
+        github-bearer-token: ${{ secrets.GITHUB_TOKEN }}
+    
     #- name: Run Tests
     #  run: ${{env.SOLUTION_FILE_PATH}}}/x64/Release/odbc-ipfs-test.exe --gtest_output="xml:report.xml"
   

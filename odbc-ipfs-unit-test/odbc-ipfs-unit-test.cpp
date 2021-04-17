@@ -61,15 +61,26 @@ namespace odbcipfsunittest
 		{
 			Assert::AreEqual(1, 1);
 
-
-
+			SQLHSTMT stmt;
 
 			Logger::WriteMessage("Testing");
 
-			//SQLDisconnect(dbc);
 
-			//SQLFreeHandle(SQL_HANDLE_DBC, dbc);
-			//SQLFreeHandle(SQL_HANDLE_ENV, env);
+			SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+
+			ret = SQLExecDirect(stmt, (SQLWCHAR*)L"CREATE TABLE IF NOT EXISTS `new_table1` (`id` INT NOT NULL,`name` VARCHAR(45) NULL);", SQL_NTS); // , PRIMARY KEY(`id`)
+
+			ret = SQLExecDirect(stmt, (SQLWCHAR*)L"INSERT INTO `new_table1` (`id`, `name`) VALUES ('555', 'Hello ECE49595');", SQL_NTS);
+			ret = SQLExecDirect(stmt, (SQLWCHAR*)L"INSERT INTO `new_table1` (`id`, `name`) VALUES ('40', 'dsfdssdfaf');", SQL_NTS);
+
+
+			ret = SQLExecDirect(stmt, (SQLWCHAR*)L"SELECT * FROM `new_table1`;", SQL_NTS);
+
+
+			SQLDisconnect(dbc);
+
+			SQLFreeHandle(SQL_HANDLE_DBC, dbc);
+			SQLFreeHandle(SQL_HANDLE_ENV, env);
 
 		}
 	};

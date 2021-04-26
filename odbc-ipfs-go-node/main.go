@@ -12,23 +12,12 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type Message struct {
-	sender      string
-	messageData MessageData
-}
-
 type MessageData struct {
 	Command    string
 	To         string
 	StringData []string
 	Data       []interface{}
 	Nonce      int
-}
-
-type Node struct {
-	Id    string
-	Fetch int
-	Nonce int
 }
 
 var lock = sync.RWMutex{} //lock for 'Nodes'
@@ -42,13 +31,6 @@ var Nodes map[string]int  //Fetch counter
 //RESULTEND
 //DATA
 
-type FakeMsg struct {
-	From string
-	Data []byte
-}
-
-var messages []FakeMsg
-
 var createTableQuery = MessageData{"QUERY", "nil", []string{"CREATE TABLE IF NOT EXISTS `new_table1` (`id` INT NOT NULL,`name` VARCHAR(45) NULL);"}, nil, -1}
 var insertQuery = MessageData{"QUERY", "nil", []string{"INSERT INTO `new_table1` (`id`, `name`) VALUES ('555', 'Hello ECE49595');"}, nil, -1}
 var selectQuery = MessageData{"QUERY", "nil", []string{"SELECT * FROM new_table1;"}, nil, -1}
@@ -58,6 +40,7 @@ var DB *sql.DB
 var sh *shell.Shell
 var pubsub *shell.PubSubSubscription
 
+// setupPubSub sets up the ipfs shell as well as subscribes to the channel
 func setupPubSub() {
 	sh = shell.NewShell("localhost:5001") //ipfs
 	var err error
@@ -86,14 +69,19 @@ func main() {
 	sendMsg(insertQuery)
 	sendMsg(selectQuery)
 	sendMsg(fetchQuery)
-
 	sendMsg(fetchQuery)
-
+	sendMsg(fetchQuery)
+	fmt.Printf("\n\n\n\n\n")
+	sendMsg(selectQuery)
+	sendMsg(fetchQuery)
+	sendMsg(fetchQuery)
+	sendMsg(fetchQuery)
 	//sendMsg(fetchQuery)
 	time.Sleep(1 * time.Hour)
 
 }
 
+// sendMsg sends a message over pubsub given the message data
 func sendMsg(messageData MessageData) {
 	bts, err := json.Marshal(messageData)
 	if err != nil {
@@ -103,6 +91,7 @@ func sendMsg(messageData MessageData) {
 	sh.PubSubPublish("Hello World", string(bts))
 }
 
+// server is the main routine that parses incoming queries
 func server() {
 	for {
 		msg, err := pubsub.Next()
@@ -128,8 +117,8 @@ func server() {
 		case "FETCH":
 			fetchCMD(msg)
 			break
-		case "FETCHEND":
-			fetchEndCMD(msg)
+		case "FETCHEND": //Ignore
+
 			break
 		case "DATA": //Ignore
 			break
@@ -145,34 +134,35 @@ func server() {
 	}
 }
 
+// readNode sets an item in the Nodes map (thread safe)
 func readNode(key string) int {
 	lock.RLock()
 	defer lock.RUnlock()
 	return Nodes[key]
 }
 
+// writeNode updates the Nodes map (thread safe)
 func writeNode(key string, val int) {
 	lock.Lock()
 	defer lock.Unlock()
 	Nodes[key] = val
 }
 
-func fetchEndCMD(msg *shell.Message) {
-	writeNode(msg.From.String(), -1)
-}
-
+// fetchCMD increments the fetch counter (thread safe)
 func fetchCMD(msg *shell.Message) {
 	writeNode(msg.From.String(), readNode(msg.From.String())+1)
 }
 
+// queryCMD creates a new goroutine of queryDB from the given message data and message
 func queryCMD(msg *shell.Message, md MessageData) {
 	fmt.Println("Query")
 
 	go queryDB(md, msg.From.String())
 }
 
-var queryActiveLock = sync.RWMutex{}
+var queryActiveLock = sync.RWMutex{} //lock to make sure only one query occurs at a time
 
+// queryDB is the main query logic such as handling returning data
 func queryDB(md MessageData, sender string) error {
 	queryActiveLock.Lock()
 	defer queryActiveLock.Unlock()
@@ -190,7 +180,7 @@ func queryDB(md MessageData, sender string) error {
 		return err
 	}
 	defer res.Close()
-
+	count := 0
 	for res.Next() {
 		//wait for fetch
 
@@ -211,18 +201,21 @@ func queryDB(md MessageData, sender string) error {
 		sendData(sender, interfaceData)
 
 		fmt.Println(interfaceData)
+		count++
 	}
 
-	sendResultEnd(sender, md.StringData[0])
+	if count != 0 {
+		//Wait one more time
+		for readNode(sender) == 0 {
+		}
 
+		sendFetchEnd(sender, md.StringData[0])
+	}
 	return nil
 }
 
-func waitForFetch(res *sql.Rows) {
-	getData(fetchQuery, res)
-
-}
-
+// getData gets all the data and brings it into one interface array
+// It returns an interface array of all the values
 func getData(md MessageData, res *sql.Rows) ([]interface{}, error) {
 	cols := make([]interface{}, len(md.StringData))
 	colsAddr := make([]interface{}, len(md.StringData))
@@ -239,21 +232,25 @@ func getData(md MessageData, res *sql.Rows) ([]interface{}, error) {
 	return cols, err
 }
 
+// sendData sends data over pubsub with the id of the requester
 func sendData(to string, cols []interface{}) {
 	dataQuery := MessageData{"DATA", to, nil, cols, -1}
 	sendMsg(dataQuery)
 }
 
+// sendError sends error messages over pubsub with the id of the requester
 func sendError(to string, err string) {
 	errorQuery := MessageData{"ERROR", to, []string{err}, nil, -1}
 	sendMsg(errorQuery)
 }
 
-func sendResultEnd(to string, cmd string) {
-	resultEndQuery := MessageData{"RESULTEND", to, []string{cmd}, nil, -1}
-	sendMsg(resultEndQuery)
+// sendError sends when all rows have been read over pubsub with the id of the requester
+func sendFetchEnd(to string, cmd string) {
+	resultFetchQuery := MessageData{"FETCHEND", to, []string{cmd}, nil, -1}
+	sendMsg(resultFetchQuery)
 }
 
+// setupDB sets up the basic sqlite databse
 func setupDB() {
 	err := os.Remove("sqlite-database.db")
 

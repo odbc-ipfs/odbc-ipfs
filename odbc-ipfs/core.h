@@ -23,6 +23,7 @@ typedef struct {
 	SQLPOINTER TargetValueptr;	/**< Value buffer */
 	int index;		/**< Index of column in result */
 	int offs;		/**< Byte offset for SQLGetData() */ // Not sure we need this
+	//int columnNumber /** Column number of the newly bound column **/
 } BINDCOL;
 /*Driver internal structure for environment (HENV).
 
@@ -87,6 +88,7 @@ typedef struct {
 	char** colName; // an array of pointers to strings where each entry represents the name of corresponding result column as obtained
 	BINDCOL* bindcols;		/**< Array of bound columns */
 	int nbindcols;		/**< Number of entries in bindcols */
+	//int* boundcolumns  // The column numbers for the bound columns
 } STMT;
 
 

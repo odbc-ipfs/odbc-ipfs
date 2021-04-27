@@ -696,12 +696,13 @@ ln_strtod(const char* data, char** endp)
 	struct lconv* lc = 0;
 	char buf[128], * p, * end;
 	double value;
+	int lenp;
 
 	lc = localeconv();
 	if (lc && lc->decimal_point && lc->decimal_point[0] &&
 		lc->decimal_point[0] != '.') {
-		strmake()
-		strncpy(buf, data, sizeof(buf) - 1);
+		strmake(buf, data, 128, &lenp);
+		//strncpy(buf, data, sizeof(buf) - 1);
 		buf[sizeof(buf) - 1] = '\0';
 		p = strchr(buf, '.');
 		if (p) {

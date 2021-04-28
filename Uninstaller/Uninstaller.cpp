@@ -8,11 +8,12 @@
 using namespace std;
 int main()
 {
-    LPCWSTR lpszDriver = L"ODBC IPFS";
+    LPCWSTR lpszDriver = L"odbc-ipfs";
     BOOL fRemoveDSN = FALSE;
     DWORD lpdwUsageCount = -1;
     if (SQLRemoveDriver(lpszDriver, fRemoveDSN, &lpdwUsageCount) == FALSE) {
         cout << "Error" << endl;
+
         cin.get();
     }
 }

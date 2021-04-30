@@ -10,15 +10,8 @@ import (
 
 	shell "github.com/ipfs/go-ipfs-api"
 	_ "github.com/mattn/go-sqlite3"
+	. "github.com/odbc-ipfs/odbc-ipfs/shared"
 )
-
-type MessageData struct {
-	Command    string
-	To         string
-	StringData []string
-	Data       []interface{}
-	Nonce      int
-}
 
 var lock = sync.RWMutex{} //lock for 'Nodes'
 var Nodes map[string]int  //Fetch counter
@@ -40,55 +33,33 @@ var DB *sql.DB
 var sh *shell.Shell
 var pubsub *shell.PubSubSubscription
 
-// setupPubSub sets up the ipfs shell as well as subscribes to the channel
-func setupPubSub() {
-	sh = shell.NewShell("localhost:5001") //ipfs
-	var err error
-	pubsub, err = sh.PubSubSubscribe("Hello World")
-
-	if err != nil {
-		fmt.Println("Error setting up pubsub")
-		fmt.Println(err)
-		os.Exit(1)
-	}
-}
-
 func main() {
 
 	Nodes = make(map[string]int)
 
 	setupDB()
-	setupPubSub() //ipfs daemon --enable-pubsub-experiment
+	sh, pubsub = SetupPubSub() //ipfs daemon --enable-pubsub-experiment
 
 	go server()
 
-	time.Sleep(1 * time.Second)
+	fmt.Println("Listening...")
 
-	sendMsg(createTableQuery)
-	sendMsg(insertQuery)
-	sendMsg(insertQuery)
-	sendMsg(selectQuery)
-	sendMsg(fetchQuery)
-	sendMsg(fetchQuery)
-	sendMsg(fetchQuery)
-	fmt.Printf("\n\n\n\n\n")
-	sendMsg(selectQuery)
-	sendMsg(fetchQuery)
-	sendMsg(fetchQuery)
-	sendMsg(fetchQuery)
-	//sendMsg(fetchQuery)
-	time.Sleep(1 * time.Hour)
-
-}
-
-// sendMsg sends a message over pubsub given the message data
-func sendMsg(messageData MessageData) {
-	bts, err := json.Marshal(messageData)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	sh.PubSubPublish("Hello World", string(bts))
+	/*
+		SendMsg(sh, createTableQuery)
+		SendMsg(sh, insertQuery)
+		SendMsg(sh, insertQuery)
+		SendMsg(sh, selectQuery)
+		SendMsg(sh, fetchQuery)
+		SendMsg(sh, fetchQuery)
+		SendMsg(sh, fetchQuery)
+		fmt.Printf("\n\n\n\n\n")
+		SendMsg(sh, selectQuery)
+		SendMsg(sh, fetchQuery)
+		SendMsg(sh, fetchQuery)
+		SendMsg(sh, fetchQuery)
+		//SendMsg(sh,fetchQuery)
+	*/
+	time.Sleep(time.Hour * 48)
 }
 
 // server is the main routine that parses incoming queries
@@ -150,6 +121,7 @@ func writeNode(key string, val int) {
 
 // fetchCMD increments the fetch counter (thread safe)
 func fetchCMD(msg *shell.Message) {
+	fmt.Println("Fetch")
 	writeNode(msg.From.String(), readNode(msg.From.String())+1)
 }
 
@@ -198,7 +170,8 @@ func queryDB(md MessageData, sender string) error {
 			sendError(sender, err.Error())
 			return nil
 		}
-		sendData(sender, interfaceData)
+
+		sendData(sender, interfaceData, md.StringData)
 
 		fmt.Println(interfaceData)
 		count++
@@ -211,6 +184,7 @@ func queryDB(md MessageData, sender string) error {
 
 		sendFetchEnd(sender, md.StringData[0])
 	}
+
 	return nil
 }
 
@@ -233,21 +207,21 @@ func getData(md MessageData, res *sql.Rows) ([]interface{}, error) {
 }
 
 // sendData sends data over pubsub with the id of the requester
-func sendData(to string, cols []interface{}) {
-	dataQuery := MessageData{"DATA", to, nil, cols, -1}
-	sendMsg(dataQuery)
+func sendData(to string, cols []interface{}, origCMD []string) {
+	dataQuery := MessageData{"DATA", to, origCMD, cols, -1}
+	SendMsg(sh, dataQuery)
 }
 
 // sendError sends error messages over pubsub with the id of the requester
 func sendError(to string, err string) {
 	errorQuery := MessageData{"ERROR", to, []string{err}, nil, -1}
-	sendMsg(errorQuery)
+	SendMsg(sh, errorQuery)
 }
 
 // sendError sends when all rows have been read over pubsub with the id of the requester
 func sendFetchEnd(to string, cmd string) {
 	resultFetchQuery := MessageData{"FETCHEND", to, []string{cmd}, nil, -1}
-	sendMsg(resultFetchQuery)
+	SendMsg(sh, resultFetchQuery)
 }
 
 // setupDB sets up the basic sqlite databse

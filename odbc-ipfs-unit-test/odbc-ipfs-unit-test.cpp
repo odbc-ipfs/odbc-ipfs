@@ -36,7 +36,7 @@ namespace odbcipfsunittest
 			SQLWCHAR str_ret[1024];
 			SQLSMALLINT str_ret_len;
 
-			wchar_t str_dsn[] = L"FILEDSN=C:/Program Files/Common Files/Odbc/Data Sources/odbc-ipfs.dsn;";
+			wchar_t str_dsn[] = L"FILEDSN=C:/Program Files/Common Files/Odbc/Data Sources/odbc-ipfs.dsn";
 
 			ret = SQLDriverConnect(dbc, NULL, str_dsn, SQL_NTS, str_ret, sizeof(4096), &str_ret_len, SQL_DRIVER_COMPLETE);
 

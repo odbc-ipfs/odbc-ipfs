@@ -25,7 +25,7 @@ var pubsub *shell.PubSubSubscription
 
 //export CreateShell
 func CreateShell() {
-	sh, pubsub = SetupPubSub()
+	sh, pubsub = SetupPubSub("localhost:5001")
 	fmt.Printf("Created IPFS shell and pubsub in GO\n")
 }
 

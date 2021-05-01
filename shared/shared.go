@@ -3,7 +3,7 @@ package shared
 import (
 	"encoding/json"
 	"fmt"
-	"os"
+	"time"
 
 	shell "github.com/ipfs/go-ipfs-api"
 )
@@ -21,10 +21,10 @@ func SetupPubSub(url string) (*shell.Shell, *shell.PubSubSubscription) {
 	sh := shell.NewShell(url) //ipfs
 	var err error
 	pubsub, err := sh.PubSubSubscribe("Hello World")
-	if err != nil {
-		fmt.Println("Error setting up pubsub")
-		fmt.Println(err)
-		os.Exit(1)
+	for err != nil {
+		fmt.Println("Error setting up pubsub, retrying in 5 seconds...")
+		time.Sleep(5 * time.Second)
+		pubsub, err = sh.PubSubSubscribe("Hello World")
 	}
 	return sh, pubsub
 }

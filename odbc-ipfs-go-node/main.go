@@ -38,7 +38,7 @@ func main() {
 	Nodes = make(map[string]int)
 
 	setupDB()
-	sh, pubsub = SetupPubSub() //ipfs daemon --enable-pubsub-experiment
+	sh, pubsub = SetupPubSub("ipfs:5001") //ipfs daemon --enable-pubsub-experiment
 
 	go server()
 

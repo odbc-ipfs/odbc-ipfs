@@ -17,8 +17,8 @@ type MessageData struct {
 }
 
 // setupPubSub sets up the ipfs shell as well as subscribes to the channel
-func SetupPubSub() (*shell.Shell, *shell.PubSubSubscription) {
-	sh := shell.NewShell("localhost:5001") //ipfs
+func SetupPubSub(url string) (*shell.Shell, *shell.PubSubSubscription) {
+	sh := shell.NewShell(url) //ipfs
 	var err error
 	pubsub, err := sh.PubSubSubscribe("Hello World")
 	if err != nil {

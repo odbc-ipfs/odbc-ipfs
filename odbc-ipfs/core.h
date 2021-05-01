@@ -86,7 +86,7 @@ typedef struct {
 	int argc; //the number of columns in the result
 	char** argv; //an array of pointers to strings obtained
 	char** colName; // an array of pointers to strings where each entry represents the name of corresponding result column as obtained
-	BINDCOL* bindcols;		/**< Array of bound columns */
+	BINDCOL bindcols[100];		/**< Array of bound columns */
 	int nbindcols;		/**< Number of entries in bindcols */
 	//int* boundcolumns  // The column numbers for the bound columns
 } STMT;

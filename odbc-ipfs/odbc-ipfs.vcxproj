@@ -154,7 +154,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="cgo-connector.h" />
-    <ClInclude Include="connector.h" />
+    <ClInclude Include="ipfsConnector.h" />
     <ClInclude Include="core.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
@@ -168,7 +168,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="sqliteConnector.cpp" />
+    <ClCompile Include="ifpsConnector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="odbc-ipfs.def" />

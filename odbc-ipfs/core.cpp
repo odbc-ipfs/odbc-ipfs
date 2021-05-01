@@ -2,8 +2,8 @@
 #include <utility>
 #include <limits.h>
 #include "core.h"
-#include "connector.h"
 #include <iostream>
+#include "ipfsConnector.h"
 
 //////////////////////////////////////////////////////
 #define CHECK_HANDLE(h) if (h == NULL) return SQL_INVALID_HANDLE
@@ -133,6 +133,8 @@ SQLRETURN  SQL_API SQLAllocStmt(SQLHDBC ConnectionHandle,
     }
 
     stmt->dbc = dbc;
+    stmt->nbindcols = 0;
+
     *StatementHandle = (SQLHSTMT)stmt;
 
     return SQL_SUCCESS;
@@ -153,6 +155,7 @@ SQLRETURN  SQL_API SQLFreeStmt(SQLHSTMT StatementHandle,
     return SQL_SUCCESS;
 }
 
+/*
 static void
 unbindcols(STMT* s)
 {
@@ -212,6 +215,7 @@ mkbindcols(STMT* s, int ncols)
 	}
 	return SQL_SUCCESS;
 }
+*/
 
 SQLRETURN SQL_API SQLBindCol(SQLHSTMT StatementHandle,
     SQLUSMALLINT ColumnNumber, SQLSMALLINT TargetType,
@@ -230,7 +234,28 @@ SQLRETURN SQL_API SQLBindCol(SQLHSTMT StatementHandle,
 
     //TargetValue = (SQLPOINTER) sqlint;
 
+    STMT* stmt = (STMT*)StatementHandle;
+    if (stmt->bindcols == NULL) {
+        //stmt->bindcols = (BINDCOL*) malloc(sizeof(BINDCOL) * 100);
+    }
+
+    if (stmt->nbindcols < ColumnNumber) {
+        stmt->nbindcols = ColumnNumber;
+    }
+
+    BINDCOL boundCol = stmt->bindcols[ColumnNumber];
+
+    boundCol.type = TargetType;
+    boundCol.BufferLength = BufferLength;
+    boundCol.StrLen_or_Ind = StrLen_or_Ind;
+    boundCol.TargetValueptr = TargetValue;
+    boundCol.offs = 0;
+
+
+    return SQL_SUCCESS;
+    /*
 	CHECK_HANDLE(StatementHandle);
+
 
 	STMT* s = (STMT*)StatementHandle;
 	int sz = 0;
@@ -276,7 +301,7 @@ SQLRETURN SQL_API SQLBindCol(SQLHSTMT StatementHandle,
 		break;
 	default:
 		if (TargetValue == NULL) {
-			/* fall through, unbinding column */
+			/* fall through, unbinding column 
 			break;
 		}
 		printf("SQLBindCOL Invalid type %d HY003\n",TargetType);
@@ -284,7 +309,7 @@ SQLRETURN SQL_API SQLBindCol(SQLHSTMT StatementHandle,
 		return SQL_ERROR;
 	}
 	if (TargetValue == NULL) {
-		/* unbind column */
+		/* unbind column 
 		s->bindcols[ColumnNumber].type = SQL_UNKNOWN_TYPE;
 		s->bindcols[ColumnNumber].BufferLength = 0;
 		s->bindcols[ColumnNumber].StrLen_or_Ind = NULL;
@@ -306,7 +331,7 @@ SQLRETURN SQL_API SQLBindCol(SQLHSTMT StatementHandle,
 		}
 	}
 	return SQL_SUCCESS;
-
+    */
 }
 
 SQLRETURN SQLBindParameter(
@@ -721,6 +746,7 @@ ln_strtod(const char* data, char** endp)
 	return value;
 }
 
+/*
 static SQLRETURN
 getrowdata(STMT* s, SQLUSMALLINT col, SQLSMALLINT otype,
 	SQLPOINTER val, SQLINTEGER len, SQLLEN* lenp, int partial)
@@ -953,14 +979,19 @@ getrowdata(STMT* s, SQLUSMALLINT col, SQLSMALLINT otype,
 	sret = SQL_SUCCESS;
 	return sret;
 }
+*/
 
 SQLRETURN  SQL_API SQLFetch(SQLHSTMT StatementHandle) {
     OutputDebugString(L"SQLFetch called\n");
 
 	CHECK_HANDLE(StatementHandle);
 
-	STMT* s = (STMT*)StatementHandle;
+	STMT* stmt = (STMT*)StatementHandle;
 	
+    return fetch(stmt);
+
+
+    /*
 
 	if (s->argc < 1) {
 		return SQL_NO_DATA;
@@ -994,11 +1025,11 @@ SQLRETURN  SQL_API SQLFetch(SQLHSTMT StatementHandle) {
 	////////////////////////////////////////////////
 	// Whatever go function gets our data for us.
 	////////////////////////////////////////////////
-
+    */
 
 	
 	
-    return SQL_SUCCESS;
+    //return SQL_SUCCESS;
 }
 
 SQLRETURN  SQL_API SQLFetchScroll(SQLHSTMT StatementHandle,

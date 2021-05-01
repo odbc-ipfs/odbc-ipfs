@@ -73,28 +73,65 @@ namespace odbcipfsunittest
 		}
 
 		
-		TEST_METHOD(TestMethod1) //TestSQLExecDirect
-		{	
+		
+		TEST_METHOD(TestMethod1) // Test SQLBINDCOL
+		{
+			char debugStr[512];
 
+			SQLHSTMT st;
+
+			SQLAllocHandle(SQL_HANDLE_STMT, dbc, &st);
+
+			STMT* stmt = (STMT*)st;
+
+			SQLUINTEGER a = 10;
+			SQLCHAR* aStr = (SQLCHAR*) "Hello world";
 			
 
-			SQLHSTMT stmt;
+			SQLLEN alenorind = 2;
+			SQLLEN astrlenorind = 2;		
 
-			SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+			
+			ret = SQLBindCol(stmt, 1, 0, &a, 0, &alenorind);
+			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLBINDCOL Failed");
 
-			ret = SQLExecDirect(stmt, (SQLWCHAR*)L"CREATE TABLE IF NOT EXISTS `new_table1` (`id` INT NOT NULL,`name` VARCHAR(45) NULL);", SQL_NTS); // , PRIMARY KEY(`id`)
+			//ret = SQLBindCol(stmt, 2, 1, aStr, sizeof(aStr), &astrlenorind);
+			//Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLBINDCOL Failed");
+			
+			sprintf_s(debugStr, "a = %d\n", a);
+			Logger::WriteMessage(debugStr);
+			sprintf_s(debugStr, "aStr = %s\n", aStr);
+			Logger::WriteMessage(debugStr);
+
+			ret = SQLExecDirect(st, (SQLWCHAR*)L"CREATE TABLE IF NOT EXISTS `new_table1` (`id` INT NOT NULL,`name` VARCHAR(45) NULL);", SQL_NTS); // , PRIMARY KEY(`id`)
 			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
 
-			ret = SQLExecDirect(stmt, (SQLWCHAR*)L"INSERT INTO `new_table1` (`id`, `name`) VALUES ('555', 'Hello ECE49595');", SQL_NTS);
-			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
-			ret = SQLExecDirect(stmt, (SQLWCHAR*)L"INSERT INTO `new_table1` (`id`, `name`) VALUES ('40', 'dsfdssdfaf');", SQL_NTS);
+			ret = SQLExecDirect(st, (SQLWCHAR*)L"INSERT INTO `new_table1` (`id`, `name`) VALUES ('555', 'Hello ECE49595');", SQL_NTS);
 			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
 
-			ret = SQLExecDirect(stmt, (SQLWCHAR*)L"SELECT * FROM `new_table1`;", SQL_NTS);
+			ret = SQLExecDirect(st, (SQLWCHAR*)L"INSERT INTO `new_table1` (`id`, `name`) VALUES ('40', 'dsfdssdfaf');", SQL_NTS);
 			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
-		}
-		TEST_METHOD(TestMethod2) // Test SQLBINDCOL
-		{
+
+			ret = SQLExecDirect(st, (SQLWCHAR*)L"SELECT * FROM `new_table1`;", SQL_NTS);
+			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
+
+
+
+			sprintf_s(debugStr, "SQLFetch Begin");
+			Logger::WriteMessage(debugStr);
+
+			ret = SQLFetch(st);
+			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLFetch Failed");
+			ret = SQLFetch(st);
+			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLFetch Failed");
+
+			sprintf_s(debugStr, "a = %d\n", a);
+			Logger::WriteMessage(debugStr);
+			sprintf_s(debugStr, "aStr = %s\n", aStr);
+			Logger::WriteMessage(debugStr);
+
+
+			/*
 			SQLHSTMT stmt;
 
 			SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
@@ -156,9 +193,26 @@ namespace odbcipfsunittest
 
 
 			Assert::AreEqual(6, s->nbindcols, L"Number of Bound Columns not equal");
-
+			*/
 		}
+		
+		TEST_METHOD(TestMethod2) //TestSQLExecDirect
+		{
+			SQLHSTMT stmt;
 
+			SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+
+			ret = SQLExecDirect(stmt, (SQLWCHAR*)L"CREATE TABLE IF NOT EXISTS `new_table1` (`id` INT NOT NULL,`name` VARCHAR(45) NULL);", SQL_NTS); // , PRIMARY KEY(`id`)
+			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
+
+			ret = SQLExecDirect(stmt, (SQLWCHAR*)L"INSERT INTO `new_table1` (`id`, `name`) VALUES ('555', 'Hello ECE49595');", SQL_NTS);
+			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
+			ret = SQLExecDirect(stmt, (SQLWCHAR*)L"INSERT INTO `new_table1` (`id`, `name`) VALUES ('40', 'dsfdssdfaf');", SQL_NTS);
+			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
+
+			ret = SQLExecDirect(stmt, (SQLWCHAR*)L"SELECT * FROM `new_table1`;", SQL_NTS);
+			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
+		}
 		
 
 	};

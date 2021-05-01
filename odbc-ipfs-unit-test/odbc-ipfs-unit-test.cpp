@@ -9,6 +9,10 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 //#include "..\odbc-ipfs\core.h"
 #include <Odbcinst.h>
 
+#include "../odbc-ipfs/core.h"
+#define BUFFERSIZE 1024
+#include <assert.h>
+
 
 namespace odbcipfsunittest
 {
@@ -88,6 +92,71 @@ namespace odbcipfsunittest
 
 			ret = SQLExecDirect(stmt, (SQLWCHAR*)L"SELECT * FROM `new_table1`;", SQL_NTS);
 			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
+		}
+		TEST_METHOD(TestMethod2) // Test SQLBINDCOL
+		{
+			SQLHSTMT stmt;
+
+			SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
+
+			STMT* s = (STMT*)stmt;
+			SQLLEN column1;
+			SQLLEN column4;
+			SQLLEN column6;
+
+			SQLPOINTER Column1 = malloc(sizeof(unsigned char) * BUFFERSIZE);
+			SQLPOINTER Column4 = malloc(sizeof(float) * BUFFERSIZE);
+			SQLPOINTER Column6 = malloc(sizeof(double) * BUFFERSIZE);
+
+			//assert();
+
+
+			ret = SQLBindCol(stmt, 1, SQL_C_CHAR, (SQLPOINTER)Column1, sizeof(Column1), &column1);
+			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLBINDCOL Failed");
+			switch (s->bindcols[1].type) {
+			case SQL_C_CHAR:
+				//Assert::AreEqual(SQL_C_CHAR, stmt->bincols[1].type, L"SQLBINDCOL TYPE Failed");
+				break;
+			case SQL_UNKNOWN_TYPE:
+				assert(SQL_C_CHAR == s->bindcols[1].type);
+				//Assert::AreEqual(SQL_C_CHAR, s->bindcols[1].type, L"SQLBINDCOL TYPE Failed");
+				break;
+			}
+			assert(BUFFERSIZE == s->bindcols[1].BufferLength);
+			//Assert::AreEqual(BUFFERSIZE, s->bindcols[1].BufferLength, L"BufferLengths not equal");
+
+			ret = SQLBindCol(stmt, 4, SQL_C_FLOAT, (SQLPOINTER)Column4, sizeof(Column4), &column4);
+			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLBINDCOL Failed");
+			switch (s->bindcols[4].type) {
+			case SQL_C_FLOAT:
+				//Assert::AreEqual(SQL_C_CHAR, stmt->bincols[1].type, L"SQLBINDCOL TYPE Failed");
+				break;
+			case SQL_UNKNOWN_TYPE:
+				assert(SQL_C_FLOAT == s->bindcols[4].type);
+				//Assert::AreEqual(SQL_C_CHAR, s->bindcols[4].type, L"SQLBINDCOL TYPE Failed");
+				break;
+			}
+			assert(BUFFERSIZE == s->bindcols[4].BufferLength);
+			//Assert::AreEqual(BUFFERSIZE, s->bindcols[4].BufferLength, L"BufferLengths not equal");
+
+			ret = SQLBindCol(stmt, 6, SQL_C_DOUBLE, (SQLPOINTER)Column6, sizeof(Column6), &column6);
+			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLBINDCOL Failed");
+			switch (s->bindcols[6].type) {
+			case SQL_C_DOUBLE:
+				//Assert::AreEqual(SQL_C_CHAR, stmt->bincols[1].type, L"SQLBINDCOL TYPE Failed");
+				break;
+			case SQL_UNKNOWN_TYPE:
+				assert(SQL_C_DOUBLE == s->bindcols[6].type);
+				//Assert::AreEqual(SQL_C_CHAR, s->bindcols[6].type, L"SQLBINDCOL TYPE Failed");
+				break;
+			}
+			assert(BUFFERSIZE == s->bindcols[6].BufferLength);
+			//Assert::AreEqual(BUFFERSIZE, s->bindcols[6].BufferLength, L"BufferLengths not equal");
+
+
+
+			Assert::AreEqual(6, s->nbindcols, L"Number of Bound Columns not equal");
+
 		}
 
 		

@@ -18,7 +18,6 @@ SQLRETURN SQL_API execute(SQLHSTMT sqlstmt, SQLWCHAR* StatementText) {
 
 	return SQL_SUCCESS;
 }
-#define MY_PRINTF(...) {char cad[512]; sprintf(cad, __VA_ARGS__);  OutputDebugString(cad);}
 SQLRETURN SQL_API fetch(SQLHSTMT sqlstmt) {
 	wchar_t debug[512];
 
@@ -51,25 +50,27 @@ SQLRETURN SQL_API fetch(SQLHSTMT sqlstmt) {
 		swprintf_s(debug, L"boundCol.type = %d\n", boundCol.type);
 		OutputDebugString(debug);
 
-		if (boundCol.type == 0) {
+		if (boundCol.type == SQL_C_ULONG) {
 			typeArr[i] = 0;
 			OutputDebugString(L"fetch is int\n");
-			swprintf_s(debug, L"int value = %d\n", ptrs[i]);
+			swprintf_s(debug, L"int value = %d\n", *((int*)ptrs[i]));
 			OutputDebugString(debug);
 		}
-		else if (boundCol.type == 1){
+		else if (boundCol.type == SQL_C_CHAR){
 			typeArr[i] = 1;
 			OutputDebugString(L"fetch is char*\n");
+			swprintf_s(debug, L"char* value = %s\n", ((char*)ptrs[i]));
+			OutputDebugString(debug);
 		}
 		else {
 			typeArr[i] = 0;
 			
-			
+			OutputDebugString(L"fetch is other\n");
 			
 		}
 	}
 	OutputDebugString(L"fetch after loop\n");
-	GoSlice dataAddList = { &ptrs[0], stmt->nbindcols, stmt->nbindcols};
+	GoSlice dataAddList = { ptrs, stmt->nbindcols, stmt->nbindcols};
 	GoSlice typeSlice = { &typeArr[0], stmt->nbindcols, stmt->nbindcols };
 
 	OutputDebugString(L"fetch calling cgo\n");

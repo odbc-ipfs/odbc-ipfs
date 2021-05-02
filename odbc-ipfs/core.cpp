@@ -133,7 +133,7 @@ SQLRETURN  SQL_API SQLAllocStmt(SQLHDBC ConnectionHandle,
     }
 
     stmt->dbc = dbc;
-    stmt->nbindcols = 0;
+    //stmt->nbindcols = 0;
 
     *StatementHandle = (SQLHSTMT)stmt;
 
@@ -243,13 +243,13 @@ SQLRETURN SQL_API SQLBindCol(SQLHSTMT StatementHandle,
         stmt->nbindcols = ColumnNumber;
     }
 
-    BINDCOL boundCol = stmt->bindcols[ColumnNumber];
+    BINDCOL* boundCol = &stmt->bindcols[ColumnNumber];
 
-    boundCol.type = TargetType;
-    boundCol.BufferLength = BufferLength;
-    boundCol.StrLen_or_Ind = StrLen_or_Ind;
-    boundCol.TargetValueptr = TargetValue;
-    boundCol.offs = 0;
+    boundCol->type = TargetType;
+    boundCol->BufferLength = BufferLength;
+    boundCol->StrLen_or_Ind = StrLen_or_Ind;
+    boundCol->TargetValueptr = TargetValue;
+    boundCol->offs = 0;
 
 
     return SQL_SUCCESS;

@@ -80,23 +80,34 @@ namespace odbcipfsunittest
 
 			SQLHSTMT st;
 
-			SQLAllocHandle(SQL_HANDLE_STMT, dbc, &st);
+			ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &st);
+			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLAllocHandle Failed");
 
 			STMT* stmt = (STMT*)st;
 
 			SQLUINTEGER a = 10;
-			SQLCHAR* aStr = (SQLCHAR*) "Hello world";
+			char aStr[512];
+			strcpy_s(aStr, "From odbc-ipofs-unit-test.c, hello world");
 			
+			sprintf_s(debugStr, "pointer a = %p\n", &a);
+			Logger::WriteMessage(debugStr);
+
+			sprintf_s(debugStr, "pointer aStr = %p\n", aStr);
+			Logger::WriteMessage(debugStr);
+
+			sprintf_s(debugStr, "pointer &aStr[0] = %p\n", &aStr[0]);
+			Logger::WriteMessage(debugStr);
+
 
 			SQLLEN alenorind = 2;
 			SQLLEN astrlenorind = 2;		
 
 			
-			ret = SQLBindCol(stmt, 1, 0, &a, 0, &alenorind);
+			ret = SQLBindCol(stmt, 1, SQL_C_ULONG, &a, 0, &alenorind);
 			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLBINDCOL Failed");
 
-			//ret = SQLBindCol(stmt, 2, 1, aStr, sizeof(aStr), &astrlenorind);
-			//Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLBINDCOL Failed");
+			ret = SQLBindCol(stmt, 2, SQL_C_CHAR, &aStr[0], 0, &astrlenorind);
+			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLBINDCOL Failed");
 			
 			sprintf_s(debugStr, "a = %d\n", a);
 			Logger::WriteMessage(debugStr);
@@ -109,21 +120,21 @@ namespace odbcipfsunittest
 			ret = SQLExecDirect(st, (SQLWCHAR*)L"INSERT INTO `new_table1` (`id`, `name`) VALUES ('555', 'Hello ECE49595');", SQL_NTS);
 			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
 
-			ret = SQLExecDirect(st, (SQLWCHAR*)L"INSERT INTO `new_table1` (`id`, `name`) VALUES ('40', 'dsfdssdfaf');", SQL_NTS);
-			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
+			//ret = SQLExecDirect(st, (SQLWCHAR*)L"INSERT INTO `new_table1` (`id`, `name`) VALUES ('40', 'dsfdssdfaf');", SQL_NTS);
+			//Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
 
 			ret = SQLExecDirect(st, (SQLWCHAR*)L"SELECT * FROM `new_table1`;", SQL_NTS);
 			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
 
 
 
-			sprintf_s(debugStr, "SQLFetch Begin");
+			sprintf_s(debugStr, "SQLFetch Begin\n");
 			Logger::WriteMessage(debugStr);
 
 			ret = SQLFetch(st);
 			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLFetch Failed");
-			ret = SQLFetch(st);
-			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLFetch Failed");
+			//ret = SQLFetch(st);
+			//Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLFetch Failed");
 
 			sprintf_s(debugStr, "a = %d\n", a);
 			Logger::WriteMessage(debugStr);
@@ -195,7 +206,7 @@ namespace odbcipfsunittest
 			Assert::AreEqual(6, s->nbindcols, L"Number of Bound Columns not equal");
 			*/
 		}
-		
+		/*
 		TEST_METHOD(TestMethod2) //TestSQLExecDirect
 		{
 			SQLHSTMT stmt;
@@ -213,7 +224,7 @@ namespace odbcipfsunittest
 			ret = SQLExecDirect(stmt, (SQLWCHAR*)L"SELECT * FROM `new_table1`;", SQL_NTS);
 			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
 		}
-		
+		*/
 
 	};
 }

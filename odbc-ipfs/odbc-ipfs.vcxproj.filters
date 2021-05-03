@@ -27,7 +27,7 @@
     <ClInclude Include="core.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="connector.h">
+    <ClInclude Include="ipfsConnector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cgo-connector.h">
@@ -44,7 +44,7 @@
     <ClCompile Include="core.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sqliteConnector.cpp">
+    <ClCompile Include="ifpsConnector.cpp">
       <Filter>Source Files\connectors</Filter>
     </ClCompile>
   </ItemGroup>

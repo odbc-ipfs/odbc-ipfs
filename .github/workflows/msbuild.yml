@@ -45,7 +45,7 @@ jobs:
       uses: actions/setup-go@v2.1.3
       
     - name: Build go node
-      working-directory: ${{env.SOLUTION_FILE_PATH}}/odbc-ipfs-go-node
+      working-directory: ${{env.SOLUTION_FILE_PATH}}/odbc-ipfs-go-node-main
       run: go build
       
     - name: Build cgo connector

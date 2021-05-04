@@ -8,10 +8,25 @@
 //NOTE: make sure you are building for the right system
 // x86 or x64
 // x86 applications will NOT find x64 drivers and vice versa
-int main()
+int main(int argc, char* argv[])
 {
     SQLHDBC dbc;
     SQLHENV env;
+
+    int inputInt;
+    char inputStr[512];
+
+    if (argc < 3) {
+        std::cout << "Usage: SampleODBCApplication.exe <int> <string>\n\n";
+        return 0;
+    }
+
+    inputInt = atoi(argv[1]);
+    strcpy_s(inputStr, argv[2]);
+    
+    std::cout << "Input int: " << inputInt << "\n";
+    std::cout << "Input string: " << inputStr << "\n";
+
 
     SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &env);
     SQLSetEnvAttr(env, SQL_ATTR_ODBC_VERSION, (SQLPOINTER)SQL_OV_ODBC3, 0);
@@ -20,7 +35,7 @@ int main()
     dbc = conn(&env);
 
 
-    getData(dbc);
+    getData(dbc, inputInt, inputStr);
 
     SQLDisconnect(dbc);
 
@@ -56,17 +71,25 @@ SQLHDBC conn(SQLHENV *env) {
     return dbc;
 }
 
-void getData(SQLHDBC dbc) {
+void getData(SQLHDBC dbc, int inputInt, char* inputStr) {
     SQLHSTMT stmt;
     SQLSMALLINT columns = 0;
     int row = 0;
+
+    char query[512];
+    wchar_t wquery[512];
 
     SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
 
     SQLRETURN ret = SQLExecDirect(stmt, (SQLWCHAR*) L"CREATE TABLE IF NOT EXISTS `new_table1` (`id` INT NOT NULL,`name` VARCHAR(45) NULL);", SQL_NTS); // , PRIMARY KEY(`id`)
 
-    ret = SQLExecDirect(stmt, (SQLWCHAR*)L"INSERT INTO `new_table1` (`id`, `name`) VALUES ('49595', 'Hello ECE49595');", SQL_NTS);
-    ret = SQLExecDirect(stmt, (SQLWCHAR*)L"INSERT INTO `new_table1` (`id`, `name`) VALUES ('40', 'Value of 40');", SQL_NTS);
+    sprintf_s(query, "INSERT INTO `new_table1` (`id`, `name`) VALUES ('%d', '%s');", inputInt, inputStr);
+
+
+    mbstowcs_s(NULL, wquery, strlen(query)+1, query, strlen(query));
+
+
+    ret = SQLExecDirect(stmt, (SQLWCHAR*)wquery, SQL_NTS);
 
 
     ret = SQLExecDirect(stmt, (SQLWCHAR*)L"SELECT * FROM `new_table1`;", SQL_NTS);
@@ -80,13 +103,15 @@ void getData(SQLHDBC dbc) {
     SQLBindCol(stmt, 1, SQL_C_ULONG, &a, 0, &alenorind);
     SQLBindCol(stmt, 2, SQL_C_CHAR, &aStr[0], 0, &astrlenorind);
 
-    SQLFetch(stmt);
-    std::cout << "a: " <<  a << "\n";
-    std::cout << "aStr: " << aStr << "\n";
+    ret = SQLFetch(stmt);
 
-    SQLFetch(stmt);
-    std::cout << "a: " << a << "\n";
-    std::cout << "aStr: " << aStr << "\n";
+    while (ret != SQL_ERROR) {
+        std::cout << "a: " << a << "\n";
+        std::cout << "aStr: " << aStr << "\n";
+        ret = SQLFetch(stmt);
+    }
+   
+
 
 
 

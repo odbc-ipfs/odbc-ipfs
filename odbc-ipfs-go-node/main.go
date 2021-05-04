@@ -151,6 +151,9 @@ func queryDB(md MessageData, sender string) error {
 	if err != nil {
 		return err
 	}
+
+	pinDB()
+
 	defer res.Close()
 	count := 0
 	for res.Next() {
@@ -235,6 +238,22 @@ func setupDB() {
 		return
 	}
 	fmt.Println("Setup DB")
+}
+
+// pinDB pins the current state of the database, note: this does not remove previous pins
+func pinDB() {
+	reader, err := os.Open("sqlite-database.db")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	defer reader.Close()
+	str, err := sh.Add(reader)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	fmt.Println("Pinned: " + str)
 }
 
 /*

@@ -13,7 +13,7 @@ services:
       
       
   odbc-ipfs:
-    image: "tctromp/odbc-ipfs-node:latest"
+    image: "tctromp/odbc-ipfs-node:release"
     networks:
       - my-net
     

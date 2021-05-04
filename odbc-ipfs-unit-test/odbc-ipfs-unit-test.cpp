@@ -133,17 +133,15 @@ namespace odbcipfsunittest
 
 			ret = SQLFetch(st);
 
-			sprintf_s(debugStr, "a = %d\n", a);
-			Logger::WriteMessage(debugStr);
-			sprintf_s(debugStr, "aStr = %s\n", aStr);
-			Logger::WriteMessage(debugStr);
-
-			ret = SQLFetch(st);
-
-			sprintf_s(debugStr, "a = %d\n", a);
-			Logger::WriteMessage(debugStr);
-			sprintf_s(debugStr, "aStr = %s\n", aStr);
-			Logger::WriteMessage(debugStr);
+			while (ret != SQL_ERROR) {		
+				
+				sprintf_s(debugStr, "a = %d\n", a);
+				Logger::WriteMessage(debugStr);
+				sprintf_s(debugStr, "aStr = %s\n", aStr);
+				Logger::WriteMessage(debugStr);
+				ret = SQLFetch(st);
+			}
+			
 			
 
 			/*

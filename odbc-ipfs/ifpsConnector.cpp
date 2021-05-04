@@ -59,6 +59,10 @@ SQLRETURN SQL_API fetch(SQLHSTMT sqlstmt) {
 	GoSlice dataAddList = { ptrs, stmt->nbindcols, stmt->nbindcols};
 	GoSlice typeSlice = { &typeArr[0], stmt->nbindcols, stmt->nbindcols };
 
+
+	swprintf_s(debug, L"Fetch begin\n\n\n");
+	OutputDebugString(debug);
+
 	ret = Fetch(dataAddList, typeSlice, stmt->nbindcols);
 
 	/*
@@ -72,7 +76,11 @@ SQLRETURN SQL_API fetch(SQLHSTMT sqlstmt) {
 	free(ptrs);
 	free(typeArr);
 
-	if (ret == 0) {
+	swprintf_s(debug, L"connector ret %d\n\n\n", ret);
+	OutputDebugString(debug);
+
+
+	if (ret == 0 || ret == 2) {
 		return SQL_ERROR;
 	}
 

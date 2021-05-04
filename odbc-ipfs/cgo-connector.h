@@ -19,7 +19,7 @@ typedef struct { const char *p; ptrdiff_t n; } _GoString_;
 /* Start of preamble from import "C" comments.  */
 
 
-#line 3 "odbcIpfsCgoIpfs.go"
+#line 3 "pubsub.go"
  #include <stdio.h>
  #include <stdlib.h>
  #include <string.h>
@@ -48,7 +48,6 @@ typedef GoInt64 GoInt;
 typedef GoUint64 GoUint;
 typedef float GoFloat32;
 typedef double GoFloat64;
-
 
 /*
   static assertion to make sure the file is being used on architecture

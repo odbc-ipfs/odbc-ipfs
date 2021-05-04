@@ -65,8 +65,8 @@ func Fetch(dataAddressList []unsafe.Pointer, types []int32, len int32) C.int {
 	var typeStringArray []string
 
 	msg.StringData = typeStringArray
-	fmt.Print("Other Main: ")
-	fmt.Println(msg)
+	//fmt.Print("Other Main: ")
+	//fmt.Println(msg)
 
 	for i := int32(0); i < len; i++ {
 

@@ -9,4 +9,4 @@
 void listSQLDrivers();
 void listDataSources();
 SQLHDBC conn(SQLHENV* env);
-void getData(SQLHDBC dbc);
+void getData(SQLHDBC dbc, int inputInt, char* inputStr);

@@ -23,61 +23,59 @@ SQLRETURN SQL_API fetch(SQLHSTMT sqlstmt) {
 
 	void** ptrs;
 	int* typeArr;
+	int ret;
 
 	STMT* stmt = (STMT*)sqlstmt;
 	
 	ptrs = (void**) malloc(sizeof(void*) * stmt->nbindcols);
 
 	if (ptrs == NULL) {
-		printf("Malloc error");
 		return SQL_ERROR;
 	}
 
 	typeArr = (int*)malloc(sizeof(int) * stmt->nbindcols);
 
 	if (typeArr == NULL) {
-		printf("Malloc error");
 		return SQL_ERROR;
 	}
-	OutputDebugString(L"fetch before loop\n");
 	for (int i = 0; i < stmt->nbindcols; i++) {
 		BINDCOL boundCol = stmt->bindcols[i+1];
 		ptrs[i] = (void*) boundCol.TargetValueptr;
 
-		swprintf_s(debug, L"ptrs[i] = %p\n", ptrs[i]);
-		OutputDebugString(debug);
-		
-		swprintf_s(debug, L"boundCol.type = %d\n", boundCol.type);
-		OutputDebugString(debug);
 
 		if (boundCol.type == SQL_C_ULONG) {
 			typeArr[i] = 0;
-			OutputDebugString(L"fetch is int\n");
-			swprintf_s(debug, L"int value = %d\n", *((int*)ptrs[i]));
-			OutputDebugString(debug);
+
 		}
 		else if (boundCol.type == SQL_C_CHAR){
 			typeArr[i] = 1;
-			OutputDebugString(L"fetch is char*\n");
-			swprintf_s(debug, L"char* value = %s\n", ((char*)ptrs[i]));
-			OutputDebugString(debug);
+
 		}
 		else {
-			typeArr[i] = 0;
 			
-			OutputDebugString(L"fetch is other\n");
-			
+			return SQL_ERROR;
 		}
 	}
-	OutputDebugString(L"fetch after loop\n");
 	GoSlice dataAddList = { ptrs, stmt->nbindcols, stmt->nbindcols};
 	GoSlice typeSlice = { &typeArr[0], stmt->nbindcols, stmt->nbindcols };
 
-	OutputDebugString(L"fetch calling cgo\n");
-	Fetch(dataAddList, typeSlice, stmt->nbindcols);
-	OutputDebugString(L"fetch end cgo\n");
+	ret = Fetch(dataAddList, typeSlice, stmt->nbindcols);
+
+	/*
+	 	ERROR    = int32(0)
+	QUERY    = int32(1)
+	FETCHEND = int32(2)
+	 */
+
+	
+
 	free(ptrs);
 	free(typeArr);
+
+	if (ret == 0) {
+		return SQL_ERROR;
+	}
+
 	return SQL_SUCCESS;
 }
 

@@ -120,8 +120,8 @@ namespace odbcipfsunittest
 			ret = SQLExecDirect(st, (SQLWCHAR*)L"INSERT INTO `new_table1` (`id`, `name`) VALUES ('555', 'Hello ECE49595');", SQL_NTS);
 			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
 
-			//ret = SQLExecDirect(st, (SQLWCHAR*)L"INSERT INTO `new_table1` (`id`, `name`) VALUES ('40', 'dsfdssdfaf');", SQL_NTS);
-			//Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
+			ret = SQLExecDirect(st, (SQLWCHAR*)L"INSERT INTO `new_table1` (`id`, `name`) VALUES ('40', 'dsfdssdfaf');", SQL_NTS);
+			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
 
 			ret = SQLExecDirect(st, (SQLWCHAR*)L"SELECT * FROM `new_table1`;", SQL_NTS);
 			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLExecDirect Failed");
@@ -132,15 +132,19 @@ namespace odbcipfsunittest
 			Logger::WriteMessage(debugStr);
 
 			ret = SQLFetch(st);
-			Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLFetch Failed");
-			//ret = SQLFetch(st);
-			//Assert::AreEqual((SQLRETURN)SQL_SUCCESS, ret, L"SQLFetch Failed");
 
 			sprintf_s(debugStr, "a = %d\n", a);
 			Logger::WriteMessage(debugStr);
 			sprintf_s(debugStr, "aStr = %s\n", aStr);
 			Logger::WriteMessage(debugStr);
 
+			ret = SQLFetch(st);
+
+			sprintf_s(debugStr, "a = %d\n", a);
+			Logger::WriteMessage(debugStr);
+			sprintf_s(debugStr, "aStr = %s\n", aStr);
+			Logger::WriteMessage(debugStr);
+			
 
 			/*
 			SQLHSTMT stmt;

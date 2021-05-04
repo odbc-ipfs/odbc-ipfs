@@ -23,6 +23,10 @@ import (
 var sh *shell.Shell
 var pubsub *shell.PubSubSubscription
 
+func main() {
+
+}
+
 //export CreateShell
 func CreateShell() {
 	sh, pubsub = SetupPubSub("localhost:5001")
@@ -39,10 +43,6 @@ func CloseShell() {
 
 }
 
-func main() {
-
-}
-
 //export Query
 func Query(queryCString *C.char) {
 	query := C.GoString(queryCString)
@@ -52,8 +52,14 @@ func Query(queryCString *C.char) {
 	SendMsg(sh, msg)
 }
 
+const (
+	ERROR    = int32(0)
+	QUERY    = int32(1)
+	FETCHEND = int32(2)
+)
+
 //export Fetch
-func Fetch(dataAddressList []unsafe.Pointer, types []int32, len int32) {
+func Fetch(dataAddressList []unsafe.Pointer, types []int32, len int32) C.int {
 
 	msg := MessageData{"FETCH", "nil", nil, nil, -1}
 	var typeStringArray []string
@@ -78,11 +84,14 @@ func Fetch(dataAddressList []unsafe.Pointer, types []int32, len int32) {
 	msg.StringData = typeStringArray
 
 	SendMsg(sh, msg)
-	fmt.Println("End send msg")
 
 	retMd := FetchData()
-	fmt.Println("RetMd")
-	fmt.Println(retMd)
+
+	if retMd.Command == "FETCHEND" {
+		return C.int(FETCHEND)
+	} else if retMd.Command == "ERROR" {
+		return C.int(ERROR)
+	}
 
 	for i := int32(0); i < len; i++ {
 
@@ -102,7 +111,7 @@ func Fetch(dataAddressList []unsafe.Pointer, types []int32, len int32) {
 		}
 
 	}
-
+	return C.int(QUERY)
 }
 
 func FetchData() MessageData {

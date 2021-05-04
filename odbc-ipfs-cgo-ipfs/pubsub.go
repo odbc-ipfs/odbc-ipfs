@@ -10,7 +10,7 @@ import (
 	"unsafe"
 
 	shell "github.com/ipfs/go-ipfs-api"
-	. "github.com/odbc-ipfs/odbc-ipfs/shared"
+	. "github.com/odbc-ipfs/odbc-ipfs/odbc_ipfs_go_shared"
 )
 
 //import "fmt"

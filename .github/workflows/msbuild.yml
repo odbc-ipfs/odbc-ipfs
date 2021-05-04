@@ -50,7 +50,7 @@ jobs:
       
     - name: Build cgo connector
       working-directory: ${{env.SOLUTION_FILE_PATH}}/odbc-ipfs-cgo-ipfs
-      run: go build
+      run: go build -buildmode=c-shared -o cgo-connector.dll
   
     - name: 'Upload Artifact'
       uses: actions/upload-artifact@v2

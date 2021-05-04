@@ -71,5 +71,30 @@ void getData(SQLHDBC dbc) {
 
     ret = SQLExecDirect(stmt, (SQLWCHAR*)L"SELECT * FROM `new_table1`;", SQL_NTS);
 
+    SQLUINTEGER a = -1;
+    char aStr[512];
+
+    SQLLEN alenorind = 2;
+    SQLLEN astrlenorind = 2;
+
+    SQLBindCol(stmt, 1, SQL_C_ULONG, &a, 0, &alenorind);
+    SQLBindCol(stmt, 2, SQL_C_CHAR, &aStr[0], 0, &astrlenorind);
+
+    SQLFetch(stmt);
+    std::cout << "a: " <<  a << "\n";
+    std::cout << "aStr: " << aStr << "\n";
+
+    SQLFetch(stmt);
+    std::cout << "a: " << a << "\n";
+    std::cout << "aStr: " << aStr << "\n";
+
+
+
+
+
+
+
+
+
 
 }

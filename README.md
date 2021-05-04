@@ -30,7 +30,7 @@ This driver uses libp2p's pubsub to send SQL queries. IPFS nodes then parse the 
      ```
 - Build odbc-ipfs-go-node.exe
      ```
-     cd odbc-ipfs-go-node
+     cd odbc-ipfs-go-node-main
      go build
      ```
 - Build cgo-connector.dll, cgo-connector.h

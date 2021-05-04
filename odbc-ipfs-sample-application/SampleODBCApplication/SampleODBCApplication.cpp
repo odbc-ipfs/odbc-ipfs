@@ -80,13 +80,15 @@ void getData(SQLHDBC dbc) {
     SQLBindCol(stmt, 1, SQL_C_ULONG, &a, 0, &alenorind);
     SQLBindCol(stmt, 2, SQL_C_CHAR, &aStr[0], 0, &astrlenorind);
 
-    SQLFetch(stmt);
-    std::cout << "a: " <<  a << "\n";
-    std::cout << "aStr: " << aStr << "\n";
+    ret = SQLFetch(stmt);
 
-    SQLFetch(stmt);
-    std::cout << "a: " << a << "\n";
-    std::cout << "aStr: " << aStr << "\n";
+    while (ret != SQL_ERROR) {
+        std::cout << "a: " << a << "\n";
+        std::cout << "aStr: " << aStr << "\n";
+        ret = SQLFetch(stmt);
+    }
+   
+
 
 
 

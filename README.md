@@ -51,8 +51,8 @@ This driver uses libp2p's pubsub to send SQL queries. IPFS nodes then parse the 
      - Contains 4 functions called from core.cpp
      - Functions defined in connector.h
           ```
-          - SQLAPI execute(SQLHSTMT sqlstmt, SQLWCHAR* StatementText)
-          - SQLAPI fetch(SQLHSTMT sqlstmt)
+          - SQL_API execute(SQLHSTMT sqlstmt, SQLWCHAR* StatementText)
+          - SQL_API fetch(SQLHSTMT sqlstmt)
           - SQL_API connect(SQLHENV EnvironmentHandle, SQLHDBC* ConnectionHandle)
           - SQL_API disconnect(SQLHDBC ConnectionHandle)
           ```

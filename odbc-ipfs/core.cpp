@@ -2,8 +2,8 @@
 #include <utility>
 #include <limits.h>
 #include "core.h"
-#include "connector.h"
 #include <iostream>
+#include "ipfsConnector.h"
 
 //////////////////////////////////////////////////////
 #define CHECK_HANDLE(h) if (h == NULL) return SQL_INVALID_HANDLE
@@ -133,6 +133,8 @@ SQLRETURN  SQL_API SQLAllocStmt(SQLHDBC ConnectionHandle,
     }
 
     stmt->dbc = dbc;
+    //stmt->nbindcols = 0;
+
     *StatementHandle = (SQLHSTMT)stmt;
 
     return SQL_SUCCESS;
@@ -153,19 +155,183 @@ SQLRETURN  SQL_API SQLFreeStmt(SQLHSTMT StatementHandle,
     return SQL_SUCCESS;
 }
 
+/*
+static void
+unbindcols(STMT* s)
+{
+	int i;
+
+	for (i = 0; s->bindcols && i < s->nbindcols; i++) {
+		s->bindcols[i].type = SQL_UNKNOWN_TYPE;
+		s->bindcols[i].BufferLength = 0;
+		s->bindcols[i].StrLen_or_Ind = NULL;
+		s->bindcols[i].TargetValueptr = NULL;
+		s->bindcols[i].index = i;
+		s->bindcols[i].offs = 0;
+	}
+}
+//static int
+//checkIfBound(STMT* s, int col) {
+//	for (int i = 0; s->bindcols && i < s->nbindcols; i++) {
+//		if (col == s->bindcols[i].columnNumber)
+//			return 1;
+//	}
+//	return 0;
+//
+//}
+
+static SQLRETURN
+mkbindcols(STMT* s, int ncols)
+{
+	if (s->bindcols) {
+		if (s->nbindcols < ncols+1) {  // we are adjusting for binding column 0 
+			int i;
+			BINDCOL* bindcols = (BINDCOL*)realloc(s->bindcols, ncols+1 * sizeof(BINDCOL));
+
+			if (!bindcols) {
+				OutputDebugString(L"SQLBINDCOL out of memory\n");
+				return SQL_ERROR;
+			}
+			for (i = s->nbindcols; i < ncols+1; i++) {
+				bindcols[i].type = SQL_UNKNOWN_TYPE;
+				bindcols[i].BufferLength = 0;
+				bindcols[i].StrLen_or_Ind = NULL;
+				bindcols[i].TargetValueptr = NULL;
+				bindcols[i].index = i;
+				bindcols[i].offs = 0;
+			}
+			s->bindcols = bindcols;
+			s->nbindcols = ncols+1;
+		}
+	}
+	else if (ncols >= 0) {
+		s->bindcols = (BINDCOL*)malloc(sizeof(BINDCOL));
+		if (!s->bindcols) {
+			OutputDebugString(L"SQLBINDCOL out of memory\n");
+			return SQL_ERROR;
+		}
+		s->nbindcols = 1;
+		unbindcols(s);
+	}
+	return SQL_SUCCESS;
+}
+*/
+
 SQLRETURN SQL_API SQLBindCol(SQLHSTMT StatementHandle,
     SQLUSMALLINT ColumnNumber, SQLSMALLINT TargetType,
     _Inout_updates_opt_(_Inexpressible_(BufferLength)) SQLPOINTER TargetValue,
     SQLLEN BufferLength, _Inout_opt_ SQLLEN* StrLen_or_Ind) {
+	//Strlen_or_Ind is what the SQLFetch returns a value in. Can still be != NULL even if we have TargetValue input as NUll
+	// SQLFEtch specifically returns 1. The length of the data available to return	2. SQL_NO_TOTAL 3.	SQL_NULL_DATA
+	// TargetValue is the buffer where the data that SQLFetch actually returns
+	// Bufferlength is size allocated for the TargetValue buffer 
+	//However, if TargetType specifies a character type, an application should not set BufferLength to 0, because ISO CLI - compliant drivers
 
     OutputDebugString(L"SQLBindCol called\n");
 
-    SQLINTEGER* sqlint = new SQLINTEGER();
-    *sqlint = 3;
+    //SQLINTEGER* sqlint = new SQLINTEGER();
+    //*sqlint = 3;
 
-    TargetValue = (SQLPOINTER) sqlint;
+    //TargetValue = (SQLPOINTER) sqlint;
+
+    STMT* stmt = (STMT*)StatementHandle;
+    if (stmt->bindcols == NULL) {
+        //stmt->bindcols = (BINDCOL*) malloc(sizeof(BINDCOL) * 100);
+    }
+
+    if (stmt->nbindcols < ColumnNumber) {
+        stmt->nbindcols = ColumnNumber;
+    }
+
+    BINDCOL* boundCol = &stmt->bindcols[ColumnNumber];
+
+    boundCol->type = TargetType;
+    boundCol->BufferLength = BufferLength;
+    boundCol->StrLen_or_Ind = StrLen_or_Ind;
+    boundCol->TargetValueptr = TargetValue;
+    boundCol->offs = 0;
+
 
     return SQL_SUCCESS;
+    /*
+	CHECK_HANDLE(StatementHandle);
+
+
+	STMT* s = (STMT*)StatementHandle;
+	int sz = 0;
+
+	if (mkbindcols(s, ColumnNumber) != SQL_SUCCESS) {
+		return SQL_ERROR;
+	}
+
+	switch (TargetType) {
+	case SQL_C_LONG:
+	case SQL_C_ULONG:
+	case SQL_C_SLONG:
+		sz = sizeof(SQLINTEGER);
+		break;
+	case SQL_C_TINYINT:
+	case SQL_C_UTINYINT:
+	case SQL_C_STINYINT:
+		sz = sizeof(SQLCHAR);
+		break;
+	case SQL_C_SHORT:
+	case SQL_C_USHORT:
+	case SQL_C_SSHORT:
+		sz = sizeof(SQLSMALLINT);
+		break;
+	case SQL_C_FLOAT:
+		sz = sizeof(SQLFLOAT);
+		break;
+	case SQL_C_DOUBLE:
+		sz = sizeof(SQLDOUBLE);
+		break;
+	case SQL_C_WCHAR:
+		break;
+	case SQL_C_CHAR:
+		break;
+	case SQL_C_BIT:
+		sz = sizeof(SQLCHAR);
+		break;
+	case SQL_C_BINARY:
+		break;
+	case SQL_C_SBIGINT:
+	case SQL_C_UBIGINT:
+		sz = sizeof(SQLBIGINT);
+		break;
+	default:
+		if (TargetValue == NULL) {
+			/* fall through, unbinding column 
+			break;
+		}
+		printf("SQLBindCOL Invalid type %d HY003\n",TargetType);
+
+		return SQL_ERROR;
+	}
+	if (TargetValue == NULL) {
+		/* unbind column 
+		s->bindcols[ColumnNumber].type = SQL_UNKNOWN_TYPE;
+		s->bindcols[ColumnNumber].BufferLength = 0;
+		s->bindcols[ColumnNumber].StrLen_or_Ind = NULL;
+		s->bindcols[ColumnNumber].TargetValueptr = NULL;
+		s->bindcols[ColumnNumber].offs = 0;
+	}
+	else {
+		if (sz == 0 && BufferLength< 0) {
+			printf("SQLBindCOL Invalid length HY090\n");
+			return SQL_ERROR;
+		}
+		s->bindcols[ColumnNumber].type = TargetType;
+		s->bindcols[ColumnNumber].BufferLength = (sz == 0) ? BufferLength : sz; // not sure about this
+		s->bindcols[ColumnNumber].StrLen_or_Ind = StrLen_or_Ind;
+		s->bindcols[ColumnNumber].TargetValueptr = TargetValue;
+		s->bindcols[ColumnNumber].offs = 0;
+		if (StrLen_or_Ind) {
+			*StrLen_or_Ind = 0; // SQLFetch returns value in this later
+		}
+	}
+	return SQL_SUCCESS;
+    */
 }
 
 SQLRETURN SQLBindParameter(
@@ -265,8 +431,9 @@ SQLRETURN SQLColAttribute(
     SQLINTEGER len = SQL_NTS;
     STMT* stmt = (STMT*)StatementHandle;
 
-    if (FieldIdentifier == NULL) {   // convert the field identifier to a string if not null in case the switch cases below don't work
+    if (FieldIdentifier == NULL) {   
         printf("No Attribute specified\n");
+		return SQL_ERROR;
     }
     if (stmt->argc <= 0) { // This isn't like main, there should only be columns here and no executable
         printf("No columns in result from database\n");
@@ -540,11 +707,329 @@ SQLRETURN  SQL_API SQLPrepare(SQLHSTMT StatementHandle,
     return SQL_SUCCESS;
 }
 
+static int
+getbool(char* string)
+{
+	if (string) {
+		return string[0] && strchr("Yy123456789Tt", string[0]) != NULL;
+	}
+	return 0;
+}
+static double
+ln_strtod(const char* data, char** endp)
+{
+	struct lconv* lc = 0;
+	char buf[128], * p, * end;
+	double value;
+	int lenp;
+
+	lc = localeconv();
+	if (lc && lc->decimal_point && lc->decimal_point[0] &&
+		lc->decimal_point[0] != '.') {
+		strmake(buf, data, 128, &lenp);
+		//strncpy(buf, data, sizeof(buf) - 1);
+		buf[sizeof(buf) - 1] = '\0';
+		p = strchr(buf, '.');
+		if (p) {
+			*p = lc->decimal_point[0];
+		}
+		p = buf;
+	}
+	else {
+		p = (char*)data;
+	}
+	value = strtod(p, &end);
+	end = (char*)data + (end - p);
+	if (endp) {
+		*endp = end;
+	}
+	return value;
+}
+
+/*
+static SQLRETURN
+getrowdata(STMT* s, SQLUSMALLINT col, SQLSMALLINT otype,
+	SQLPOINTER val, SQLINTEGER len, SQLLEN* lenp, int partial)
+{
+	char** data;
+	SQLLEN dummy;
+	int valnull = 0;
+	int type = otype;
+	SQLRETURN sret = SQL_NO_DATA;
+
+	if (!lenp) {
+		lenp = &dummy;
+	}
+	if (col >= s->nbindcols) {
+		OutputDebugString(L"SQLFetch Error. Invalid column\n");
+		return sret;
+	}
+	data = &s->argv[col]; // i believe this is so key. Hoping this works out otherwise i have a lot of debugging to do
+	if (*data == NULL) {
+		*lenp = SQL_NULL_DATA;
+		switch (type) {
+		case SQL_C_UTINYINT:
+		case SQL_C_TINYINT:
+		case SQL_C_STINYINT:
+#ifdef SQL_BIT
+		case SQL_C_BIT:
+#endif
+			* ((SQLCHAR*)val) = 0;
+			break;
+		case SQL_C_USHORT:
+		case SQL_C_SHORT:
+		case SQL_C_SSHORT:
+			*((SQLSMALLINT*)val) = 0;
+			break;
+		case SQL_C_ULONG:
+		case SQL_C_LONG:
+		case SQL_C_SLONG:
+			*((SQLINTEGER*)val) = 0;
+			break;
+#ifdef SQL_BIGINT
+		case SQL_C_SBIGINT:
+		case SQL_C_UBIGINT:
+			*((SQLBIGINT*)val) = 0;
+			break;
+#endif
+		case SQL_C_FLOAT:
+			*((float*)val) = 0;
+			break;
+		case SQL_C_DOUBLE:
+			*((double*)val) = 0;
+			break;
+		case SQL_C_BINARY:
+		case SQL_C_CHAR:
+			if (len > 0) {
+				*((SQLCHAR*)val) = '\0';
+			}
+			break;
+#ifdef SQL_C_TYPE_DATE
+		case SQL_C_TYPE_DATE:
+#endif
+		case SQL_C_DATE:
+			memset((DATE_STRUCT*)val, 0, sizeof(DATE_STRUCT));
+			break;
+#ifdef SQL_C_TYPE_TIME
+		case SQL_C_TYPE_TIME:
+#endif
+		case SQL_C_TIME:
+			memset((TIME_STRUCT*)val, 0, sizeof(TIME_STRUCT));
+			break;
+#ifdef SQL_C_TYPE_TIMESTAMP
+		case SQL_C_TYPE_TIMESTAMP:
+#endif
+		case SQL_C_TIMESTAMP:
+			memset((TIMESTAMP_STRUCT*)val, 0, sizeof(TIMESTAMP_STRUCT));
+			break;
+		default:
+			return SQL_ERROR;
+		}
+	}
+	else {
+		char* endp = NULL;
+#if defined(_WIN32) || defined(_WIN64)
+#ifdef SQL_BIGINT
+		char endc;
+#endif
+#endif
+
+		switch (type) {
+		case SQL_C_UTINYINT:
+		case SQL_C_TINYINT:
+		case SQL_C_STINYINT:
+			*((SQLCHAR*)val) = strtol(*data, &endp, 0);
+			if (endp && endp == *data) {
+				*lenp = SQL_NULL_DATA;
+			}
+			else {
+				*lenp = sizeof(SQLCHAR);
+			}
+			break;
+#ifdef SQL_BIT
+		case SQL_C_BIT:
+			*((SQLCHAR*)val) = getbool(*data);
+			*lenp = sizeof(SQLCHAR);
+			break;
+#endif
+		case SQL_C_USHORT:
+		case SQL_C_SHORT:
+		case SQL_C_SSHORT:
+			*((SQLSMALLINT*)val) = strtol(*data, &endp, 0);
+			if (endp && endp == *data) {
+				*lenp = SQL_NULL_DATA;
+			}
+			else {
+				*lenp = sizeof(SQLSMALLINT);
+			}
+			break;
+		case SQL_C_ULONG:
+		case SQL_C_LONG:
+		case SQL_C_SLONG:
+			*((SQLINTEGER*)val) = strtol(*data, &endp, 0);
+			if (endp && endp == *data) {
+				*lenp = SQL_NULL_DATA;
+			}
+			else {
+				*lenp = sizeof(SQLINTEGER);
+			}
+			break;
+#ifdef SQL_BIGINT
+		case SQL_C_UBIGINT:
+#if defined(_WIN32) || defined(_WIN64)
+			if (sscanf_s(*data, "%I64u%c", (SQLUBIGINT*)val, &endc) != 1) {
+				*lenp = SQL_NULL_DATA;
+			}
+			else {
+				*lenp = sizeof(SQLUBIGINT);
+			}
+#endif
+			break;
+		case SQL_C_SBIGINT:
+#if defined(_WIN32) || defined(_WIN64)
+			if (sscanf_s(*data, "%I64d%c", (SQLBIGINT*)val, &endc) != 1) {
+				*lenp = SQL_NULL_DATA;
+			}
+			else {
+				*lenp = sizeof(SQLBIGINT);
+			}
+#endif
+			break;
+#endif
+		case SQL_C_FLOAT:
+			*((float*)val) = ln_strtod(*data, &endp);
+			if (endp && endp == *data) {
+				*lenp = SQL_NULL_DATA;
+			}
+			else {
+				*lenp = sizeof(float);
+			}
+			break;
+		case SQL_C_DOUBLE:
+			*((double*)val) = ln_strtod(*data, &endp);
+			if (endp && endp == *data) {
+				*lenp = SQL_NULL_DATA;
+			}
+			else {
+				*lenp = sizeof(double);
+			}
+			break;
+		case SQL_C_CHAR: {
+			int doz, zlen = len - 1;
+			int dlen = strlen(*data);
+			int offs = 0;
+
+			doz = (type == SQL_C_CHAR) ? 1 : 0;
+
+			if (partial && len && s->bindcols) {
+				if (s->bindcols[col].offs >= dlen) {
+					* lenp = 0;
+
+					if (!dlen && s->bindcols[col].offs == dlen) {
+						s->bindcols[col].offs = 1;
+						sret = SQL_SUCCESS;
+						return sret;
+					}
+					s->bindcols[col].offs = 0;
+					sret = SQL_NO_DATA;
+					return sret;
+				}
+				offs = s->bindcols[col].offs;
+				dlen -= offs;
+			}
+
+			if (valnull || len < 1) {
+				*lenp = dlen;
+			}
+			else {
+				*lenp = min(len - doz, dlen);
+				if (*lenp == len - doz && *lenp != dlen) {
+					*lenp = SQL_NO_TOTAL;
+				}
+				else if (*lenp < zlen) {
+					zlen = *lenp;
+				}
+			}
+
+			if (partial && len && s->bindcols) {
+				if (*lenp == SQL_NO_TOTAL) {
+					*lenp = dlen;
+					s->bindcols[col].offs += len - doz;
+					OutputDebugString(L"SQLFetch Error. Data Truncated\n");
+					if (s->bindcols[col].StrLen_or_Ind) {
+						*s->bindcols[col].StrLen_or_Ind = dlen;
+					}
+					sret = SQL_SUCCESS_WITH_INFO;
+					return sret;
+				}
+				s->bindcols[col].offs += *lenp;
+			}
+			if (*lenp == SQL_NO_TOTAL) {
+				*lenp = dlen;
+				OutputDebugString(L"SQLFetch Error. Data Truncated\n");
+				sret = SQL_SUCCESS_WITH_INFO;
+				return sret;
+			}
+			break;
+		}
+		default:
+			return SQL_ERROR;
+		}
+	}
+	sret = SQL_SUCCESS;
+	return sret;
+}
+*/
 
 SQLRETURN  SQL_API SQLFetch(SQLHSTMT StatementHandle) {
     OutputDebugString(L"SQLFetch called\n");
 
-    return SQL_SUCCESS;
+	CHECK_HANDLE(StatementHandle);
+
+	STMT* stmt = (STMT*)StatementHandle;
+	
+    return fetch(stmt);
+
+
+    /*
+
+	if (s->argc < 1) {
+		return SQL_NO_DATA;
+	}
+
+	for (int i = 0; s->bindcols && i < s->nbindcols; i++) {
+		BINDCOL* b = &s->bindcols[i];
+		SQLPOINTER dp = 0;
+		SQLLEN* lp = 0;
+
+		b->offs = 0;
+		if (b->TargetValueptr) {
+			dp = (SQLPOINTER)((char*)b->TargetValueptr + b->BufferLength);	// basically is there any memory		
+		}
+		if (b->StrLen_or_Ind) {
+			lp = b->StrLen_or_Ind; // is there any memory
+		}
+		if (dp || lp) {
+			SQLRETURN ret = getrowdata(s, (SQLUSMALLINT)i, b->type, dp, b->BufferLength, lp, 0);
+			if (ret != SQL_SUCCESS || ret != SQL_SUCCESS_WITH_INFO) {
+				OutputDebugString(L"SQLFetch Error\n");
+				return SQL_ROW_ERROR;
+				break;
+			}
+			s->bindcols[i].TargetValueptr = dp;
+			s->bindcols[i].StrLen_or_Ind = lp;
+		}
+		
+		
+	}
+	////////////////////////////////////////////////
+	// Whatever go function gets our data for us.
+	////////////////////////////////////////////////
+    */
+
+	
+	
+    //return SQL_SUCCESS;
 }
 
 SQLRETURN  SQL_API SQLFetchScroll(SQLHSTMT StatementHandle,

@@ -349,3 +349,4 @@ healthchecksdb
 # Local History for Visual Studio Code
 .history/
 /odbc-ipfs-go-node/sqlite-database.db
+*.exe

@@ -8,6 +8,8 @@ Open Database Connectivity (ODBC) driver for IPFS
 
 This driver uses libp2p's pubsub to send SQL queries. IPFS nodes then parse the request and return a response and synchronize among themselves.
 
+#### Project Status: Communication between the driver and a go node in IPFS works, but go nodes do not communicate between themselves yet.
+
 # WARNING: All database transactions are currently public using libp2p pubsub. NOTHING is encrypted yet.
 
 ### [Docker Hub](https://hub.docker.com/repository/docker/tctromp/odbc-ipfs-node)
@@ -17,6 +19,7 @@ This driver uses libp2p's pubsub to send SQL queries. IPFS nodes then parse the 
      ```
 - Run node and IPFS
 - Copy docker-compose.yml from the odbc-ipfs-go-node folder into a folder
+- NOTE: For linux you must change "127.0.0.1:4001:4001" to "4001:4001"
      ```     
      docker-compose up
      ```
@@ -48,8 +51,8 @@ This driver uses libp2p's pubsub to send SQL queries. IPFS nodes then parse the 
      - Contains 4 functions called from core.cpp
      - Functions defined in connector.h
           ```
-          - SQLAPI execute(SQLHSTMT sqlstmt, SQLWCHAR* StatementText)
-          - SQLAPI fetch(SQLHSTMT sqlstmt)
+          - SQL_API execute(SQLHSTMT sqlstmt, SQLWCHAR* StatementText)
+          - SQL_API fetch(SQLHSTMT sqlstmt)
           - SQL_API connect(SQLHENV EnvironmentHandle, SQLHDBC* ConnectionHandle)
           - SQL_API disconnect(SQLHDBC ConnectionHandle)
           ```

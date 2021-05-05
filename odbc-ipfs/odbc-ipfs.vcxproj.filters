@@ -27,10 +27,10 @@
     <ClInclude Include="core.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="connector.h">
+    <ClInclude Include="ipfsConnector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pubsub.h">
+    <ClInclude Include="cgo-connector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -44,7 +44,7 @@
     <ClCompile Include="core.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sqliteConnector.cpp">
+    <ClCompile Include="ifpsConnector.cpp">
       <Filter>Source Files\connectors</Filter>
     </ClCompile>
   </ItemGroup>
@@ -52,9 +52,8 @@
     <None Include="odbc-ipfs.def">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="PUBSUB.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="PUBSUB.lib" />
+    <Library Include="cgo-connector.lib" />
   </ItemGroup>
 </Project>

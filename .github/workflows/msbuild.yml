@@ -37,9 +37,20 @@ jobs:
     #- name: Run Tests
     #  run: ${{env.SOLUTION_FILE_PATH}}}/x64/Release/odbc-ipfs-test.exe --gtest_output="xml:report.xml"
   
-    - name: Run VSTest	   
-      working-directory: ${{env.SOLUTION_FILE_PATH}}
-      run: vstest.console.exe /Platform:x64 /TestAdapterPath:${{env.SOLUTION_FILE_PATH}}/x64/Release /EnableCodeCoverage ${{env.SOLUTION_FILE_PATH}}/x64/Release/odbc-ipfs-unit-test.dll
+    #- name: Run VSTest	   
+    #  working-directory: ${{env.SOLUTION_FILE_PATH}}
+    #  run: vstest.console.exe /Platform:x64 /TestAdapterPath:${{env.SOLUTION_FILE_PATH}}/x64/Release /EnableCodeCoverage ${{env.SOLUTION_FILE_PATH}}/x64/Release/odbc-ipfs-unit-test.dll
+  
+    - name: Setup Go environment
+      uses: actions/setup-go@v2.1.3
+      
+    - name: Build go node
+      working-directory: ${{env.SOLUTION_FILE_PATH}}/odbc-ipfs-go-node-main
+      run: go build
+      
+    - name: Build cgo connector
+      working-directory: ${{env.SOLUTION_FILE_PATH}}/odbc-ipfs-cgo-ipfs
+      run: go build -buildmode=c-shared -o cgo-connector.dll
   
     - name: 'Upload Artifact'
       uses: actions/upload-artifact@v2
